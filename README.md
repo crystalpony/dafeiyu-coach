@@ -12,6 +12,8 @@
 
 ![添一碗米饭](audit/screenshots/05-rice.png)
 
+![Windows 桌面窗口版（CI 冒烟）](audit/screenshots/06-windows-gui.png)
+
 ## 能做什么
 
 - **指着屏幕教**：主屏任意坐标画脉冲圆环、箭头、虚线牵引和标签；窗口鼠标穿透，不挡操作。
@@ -289,7 +291,7 @@ python3 audit/audit.py            # 全量（安装到临时 HOME，不碰真实
 python3 audit/audit.py --no-visual
 ```
 
-覆盖 126 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
+覆盖 127 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
 
 ## 许可与致谢
 

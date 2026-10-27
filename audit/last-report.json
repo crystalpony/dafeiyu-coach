@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "passed": 126,
-  "total": 126,
+  "passed": 127,
+  "total": 127,
   "groups": {
     "static": [
       9,
@@ -52,8 +52,8 @@
       16
     ],
     "visual": [
-      11,
-      11
+      12,
+      12
     ],
     "cleanup": [
       3,
@@ -154,7 +154,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-3h34dvyn/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-qnk8vgbe/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -274,7 +274,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 79009",
+      "detail": "pid 82913",
       "group": "e2e"
     },
     {
@@ -406,7 +406,7 @@
     {
       "name": "帧动画运行",
       "ok": true,
-      "detail": "frame 0 → 6",
+      "detail": "frame 0 → 7",
       "group": "e2e"
     },
     {
@@ -424,13 +424,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 79073",
+      "detail": "旧 pid 82980",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '50CE51D1-E750-4826-AAD1-ED1E1883A8EA', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '50E0DFA1-358B-459A-B1C3-6FFBDA6C14C2', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -484,13 +484,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.2498096349881962",
+      "detail": "blend=0.24249505222542211",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 59197, \"token\": \"86ea55972bdf5623db4e479ac4bdd3a2\", \"pid\": 79130}",
+      "detail": "{\"port\": 60669, \"token\": \"3fa635485c7b2a61c351a91bf7efed12\", \"pid\": 83038}",
       "group": "tui"
     },
     {
@@ -592,13 +592,13 @@
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "71 MB",
+      "detail": "70 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "7.7%",
+      "detail": "7.9%",
       "group": "perf"
     },
     {
@@ -610,7 +610,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 4.8% / 71MB · active 7.7% / 80MB",
+      "detail": "idle 4.8% / 70MB · active 7.9% / 80MB",
       "group": "perf"
     },
     {
@@ -640,7 +640,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "10868 字符",
+      "detail": "10931 字符",
       "group": "docs"
     },
     {
@@ -770,33 +770,39 @@
       "group": "visual"
     },
     {
+      "name": "证据 07：Windows GUI（CI 冒烟截图）",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/06-windows-gui.png",
+      "group": "visual"
+    },
+    {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "302 KB",
+      "detail": "301 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "305 KB",
+      "detail": "300 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "288 KB",
+      "detail": "278 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "286 KB",
+      "detail": "285 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "281 KB",
+      "detail": "280 KB",
       "group": "visual"
     },
     {
@@ -818,5 +824,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T21:03:37"
+  "at": "2026-10-27T21:13:24"
 }
