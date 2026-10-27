@@ -124,6 +124,10 @@ class Animator:
         im = ImageOps.contain(im, (PET_W - 12, PET_H - 12), Image.LANCZOS)
         canvas = Image.new("RGBA", (PET_W, PET_H), (0, 0, 0, 0))
         canvas.alpha_composite(im, ((PET_W - im.width) // 2, (PET_H - im.height) // 2))
+        # Tk 在 Windows 上用 color key 抠图，半透明边缘会和洋红键色混合成描边；
+        # 这里用二值 alpha 去掉洋红晕，边缘略硬但干净。
+        alpha = canvas.getchannel("A").point(lambda a: 255 if a >= 96 else 0)
+        canvas.putalpha(alpha)
         if len(self.cache) > 30:
             self.cache.clear()
         self.cache[rel] = canvas
