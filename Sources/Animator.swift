@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-/// 逐帧播放器：按需从磁盘解码，NSCache 限制常驻帧数，避免 820 帧同时进内存。
+/// 逐帧播放器：按需从磁盘解码，NSCache 限制常驻帧数，避免 890 帧同时进内存。
 final class ClipPlayer {
     private let manifest: ClipManifest
     private let cache = NSCache<NSString, NSImage>()
@@ -34,7 +34,7 @@ final class ClipPlayer {
         case "point": return "working"
         case "celebrate", "dance", "cheer": return "success"
         case "greet", "wave", "happy": return "pat"
-        case "snack", "rice": return "eat"
+        case "snack": return "eat"
         case "sleepy": return "yawn"
         default: return name
         }

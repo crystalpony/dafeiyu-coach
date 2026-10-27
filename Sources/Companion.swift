@@ -62,14 +62,14 @@ extension AppController {
             showBubble(title: "", text: "会议模式结束，我回来啦。", badge: "", tone: .coach, hold: 4)
         }
         let idleFor = Date().timeIntervalSince(lastCommandAt)
-        if !settings.quiet, !sleeping, session == nil, idleFor > 600 {
+        if !settings.quiet, !singing, !sleeping, session == nil, idleFor > 600 {
             sleeping = true
             player.play("yawn", loop: false, autoIdle: false)
             petView.sleeping = true
             logLine("sleep")
             return
         }
-        guard !settings.quiet, !sleeping, session == nil, !bubbleVisible, pointerGlobal == nil else { return }
+        guard !settings.quiet, !singing, !sleeping, session == nil, !bubbleVisible, pointerGlobal == nil else { return }
         if isMeetingFrontmost() { return }
         guard Date() >= nextIdleActionAt else { return }
         nextIdleActionAt = Date().addingTimeInterval(Double.random(in: 70...150))
@@ -127,6 +127,55 @@ extension AppController {
         player.play("pat", loop: false, autoIdle: true)
         petView.burstHearts(count: 2)
         showBubble(title: "", text: line, badge: app, tone: .thinking, hold: 6.5)
+    }
+    func petDance() {
+        wake()
+        player.play("success", loop: false, autoIdle: true, transition: 0.18, priority: 80)
+        petView.burstConfetti(count: 18)
+        petView.burstHearts(count: 4)
+        showBubble(title: "", text: "看我的！转个圈～", badge: "", tone: .success, hold: 4)
+    }
+
+    func feed() {
+        wake()
+        settings.riceCount = (settings.riceCount ?? 0) + 1
+        saveSettings(settings)
+        // 独立的米饭动画：白瓷碗、米饭、筷子、热气；不使用吃 token 的 eat 剪辑
+        player.play("rice", loop: false, autoIdle: false, transition: 0.18, priority: 85) { [weak self] _ in
+            guard let self else { return }
+            if self.singing {
+                self.player.play("sing", loop: true, autoIdle: true, transition: 0.20, priority: 85)
+            } else {
+                self.player.play("idle", loop: true, autoIdle: true, transition: 0.20)
+            }
+        }
+        petView.burstHearts(count: 5)
+        showBubble(title: "", text: "米饭！谢谢投喂，第 \(settings.riceCount ?? 1) 碗。", badge: "添饭", tone: .success, hold: 4.5)
+    }
+
+    func startFocus(minutes: Double) {
+        wake()
+        let m = max(0.01, min(180, minutes))
+        focusUntil = Date().addingTimeInterval(m * 60)
+        player.play("yawn", loop: false, autoIdle: true, transition: 0.18, priority: 60)
+        let label = m >= 1 ? "\(Int(m.rounded())) 分钟" : "\(Int(m * 60)) 秒"
+        showBubble(title: "专注 \(label)", text: "我去眯一会儿。时间到了叫你，先专心做事。",
+                   badge: "番茄钟", tone: .thinking, hold: 6)
+        logLine("focus start \(m)m")
+    }
+
+    func finishFocus() {
+        focusUntil = nil
+        guard session == nil else { return }
+        player.play("success", loop: false, autoIdle: true, transition: 0.18, priority: 80)
+        petView.burstHearts(count: 4)
+        showBubble(title: "时间到", text: "休息一下，喝口水，站起来走两步。",
+                   badge: "番茄钟完成", tone: .success, kind: .success, hold: 10)
+    }
+
+    func cancelFocus() {
+        focusUntil = nil
+        showBubble(title: "", text: "好，专注取消。", badge: "番茄钟", tone: .coach, hold: 3)
     }
 }
 

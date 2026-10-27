@@ -26,7 +26,6 @@ final class PetView: NSView {
     var bubbleHidden = false { didSet { needsDisplay = true } }
     var sleeping = false { didSet { needsDisplay = true } }
     var singing = false { didSet { needsDisplay = true } }
-    var feeding = false { didSet { needsDisplay = true } }
     var reducedMotion = false
     var notes: [HeartParticle] = []
     var phase: CGFloat = 0
@@ -56,6 +55,7 @@ final class PetView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         let w = bounds.width, h = bounds.height
         let hop: CGFloat = pulse > 0 ? -7 * sin(pulse * .pi) : 0
+        let singBob: CGFloat = (singing && !reducedMotion) ? -2.2 * abs(sin(phase * 2.2)) : 0
         let breathe: CGFloat = (player?.resolvedName == "idle") ? 1.5 * sin(phase) : 0
 
         if let p = player, p.image() != nil {
@@ -79,7 +79,7 @@ final class PetView: NSView {
                     let scale = min((w - pad * 2) / max(img.size.width, 1), (h - pad * 2) / max(img.size.height, 1))
                     let dw = img.size.width * scale
                     let dh = img.size.height * scale
-                    let rect = NSRect(x: (w - dw) / 2, y: (h - dh) / 2 + hop + breathe, width: dw, height: dh)
+                    let rect = NSRect(x: (w - dw) / 2, y: (h - dh) / 2 + hop + singBob + breathe, width: dw, height: dh)
                     img.draw(in: rect, from: .zero, operation: .sourceOver, fraction: alpha,
                              respectFlipped: true, hints: [.interpolation: NSImageInterpolation.high])
                 }
@@ -91,7 +91,6 @@ final class PetView: NSView {
             drawFallbackFish(w: w, h: h, hop: hop + breathe)
         }
 
-        if feeding { drawRiceBowl(w: w, h: h) }
         drawConfetti()
         drawHearts()
         drawNotes()
@@ -169,48 +168,6 @@ final class PetView: NSView {
                 .foregroundColor: NSColor(calibratedRed: 1.0, green: 0.42, blue: 0.55, alpha: p.alpha)
             ]
             NSAttributedString(string: "♥", attributes: attrs).draw(at: NSPoint(x: p.x, y: p.y))
-        }
-    }
-
-    private func drawRiceBowl(w: CGFloat, h: CGFloat) {
-        let bw = max(54, w * 0.28), bh = max(34, h * 0.20)
-        let rect = NSRect(x: (w - bw) / 2, y: h * 0.70, width: bw, height: bh)
-        // 碗
-        let bowl = NSBezierPath()
-        bowl.move(to: NSPoint(x: rect.minX, y: rect.minY + bh * 0.55))
-        bowl.line(to: NSPoint(x: rect.minX + 4, y: rect.minY + 2))
-        bowl.curve(to: NSPoint(x: rect.maxX - 4, y: rect.minY + 2),
-                   controlPoint1: NSPoint(x: rect.midX - bw * 0.2, y: rect.minY - 5),
-                   controlPoint2: NSPoint(x: rect.midX + bw * 0.2, y: rect.minY - 5))
-        bowl.line(to: NSPoint(x: rect.maxX, y: rect.minY + bh * 0.55))
-        bowl.close()
-        NSColor(calibratedWhite: 0.98, alpha: 0.98).setFill()
-        bowl.fill()
-        NSColor(calibratedRed: 0.40, green: 0.52, blue: 0.88, alpha: 0.9).setStroke()
-        bowl.lineWidth = 1.4
-        bowl.stroke()
-        // 米饭
-        let rice = NSRect(x: rect.minX + 5, y: rect.minY + bh * 0.42, width: rect.width - 10, height: bh * 0.38)
-        NSColor(calibratedWhite: 1.0, alpha: 1).setFill()
-        NSBezierPath(ovalIn: rice).fill()
-        // 筷子
-        let sticks = NSBezierPath()
-        sticks.move(to: NSPoint(x: rect.maxX - 2, y: rect.maxY + 2))
-        sticks.line(to: NSPoint(x: rect.minX + bw * 0.45, y: rect.minY + bh * 0.35))
-        NSColor(calibratedRed: 0.62, green: 0.38, blue: 0.22, alpha: 0.9).setStroke()
-        sticks.lineWidth = 1.6
-        sticks.stroke()
-        // 热气
-        for i in 0..<2 {
-            let steam = NSBezierPath()
-            let sx = rect.minX + bw * (0.35 + CGFloat(i) * 0.25)
-            steam.move(to: NSPoint(x: sx, y: rect.maxY + 2))
-            steam.curve(to: NSPoint(x: sx + 3, y: rect.maxY + 14),
-                        controlPoint1: NSPoint(x: sx - 4, y: rect.maxY + 6),
-                        controlPoint2: NSPoint(x: sx + 7, y: rect.maxY + 9))
-            NSColor(calibratedWhite: 1, alpha: 0.5).setStroke()
-            steam.lineWidth = 1.2
-            steam.stroke()
         }
     }
 
@@ -419,6 +376,8 @@ final class BubbleView: NSView {
     var currentIndex: Int = 0
     var contentScale: CGFloat = 1
     var tailOnRight = false
+    var compactMusic = false
+    var tailAtBottom = false
     var baseSize = NSSize(width: 330, height: 96)
 
     override var isFlipped: Bool { true }
@@ -427,6 +386,12 @@ final class BubbleView: NSView {
         guard let ctx = NSGraphicsContext.current else { return }
         ctx.saveGraphicsState()
         ctx.cgContext.scaleBy(x: contentScale, y: contentScale)
+
+        if compactMusic {
+            drawMusicBar()
+            ctx.restoreGraphicsState()
+            return
+        }
 
         let W = baseSize.width, H = baseSize.height
         let tailW: CGFloat = 11
@@ -544,7 +509,76 @@ final class BubbleView: NSView {
         ctx.restoreGraphicsState()
     }
 
-    static func measure(title: String, text: String, subtext: String = "", badge: String, total: Int) -> NSSize {
+    /// 唱歌时贴在头顶的窄歌词条：最多两行，一句歌词一行，不占桌面。
+    private func drawMusicBar() {
+        let W = baseSize.width, H = baseSize.height
+        let bodyRect = NSRect(x: 2, y: 2, width: W - 4, height: H - 12)
+        let path = NSBezierPath(roundedRect: bodyRect, xRadius: 14, yRadius: 14)
+        NSColor(calibratedWhite: 1.0, alpha: 0.97).setFill()
+        path.fill()
+        tone.accent.withAlphaComponent(0.78).setStroke()
+        path.lineWidth = 1.5
+        path.stroke()
+
+        // 指向头顶的小尾巴
+        if tailAtBottom {
+            let tail = NSBezierPath()
+            tail.move(to: NSPoint(x: W / 2 - 7, y: bodyRect.maxY - 1))
+            tail.line(to: NSPoint(x: W / 2, y: H - 1))
+            tail.line(to: NSPoint(x: W / 2 + 7, y: bodyRect.maxY - 1))
+            tail.close()
+            NSColor(calibratedWhite: 1.0, alpha: 0.97).setFill()
+            tail.fill()
+            tone.accent.withAlphaComponent(0.78).setStroke()
+            tail.lineWidth = 1.5
+            tail.stroke()
+        }
+
+        // ♪ 徽标
+        let badgeRect = NSRect(x: 12, y: 13, width: 24, height: 24)
+        tone.accent.withAlphaComponent(0.14).setFill()
+        NSBezierPath(ovalIn: badgeRect).fill()
+        let noteAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 14, weight: .bold),
+            .foregroundColor: tone.accent
+        ]
+        let note = NSAttributedString(string: "♪", attributes: noteAttrs)
+        let ns = note.size()
+        note.draw(at: NSPoint(x: badgeRect.midX - ns.width / 2, y: badgeRect.midY - ns.height / 2))
+
+        let textX: CGFloat = 44
+        let rightPad: CGFloat = 12
+        let titleW = W - textX - rightPad
+
+        // 歌曲名（小字、单行截断）
+        if !title.isEmpty {
+            let p = NSMutableParagraphStyle()
+            p.lineBreakMode = .byTruncatingTail
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
+                .foregroundColor: NSColor(calibratedWhite: 0.48, alpha: 1),
+                .paragraphStyle: p
+            ]
+            NSAttributedString(string: title, attributes: attrs)
+                .draw(in: NSRect(x: textX, y: 9, width: titleW, height: 14))
+        }
+
+        // 当前歌词（单行，超长自动省略）
+        let p = NSMutableParagraphStyle()
+        p.lineBreakMode = .byTruncatingTail
+        let lyricAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 14, weight: .semibold),
+            .foregroundColor: tone.ink,
+            .paragraphStyle: p
+        ]
+        let line = text.isEmpty ? "♪ 跟着哼" : text
+        NSAttributedString(string: line, attributes: lyricAttrs)
+            .draw(in: NSRect(x: textX, y: 25, width: titleW, height: 20))
+    }
+
+    static func measure(title: String, text: String, subtext: String = "", badge: String, total: Int,
+                        music: Bool = false) -> NSSize {
+        if music { return NSSize(width: 316, height: 62) }
         let width: CGFloat = 336
         let textW = width - 11 - 30
         var h: CGFloat = 15

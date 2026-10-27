@@ -12,6 +12,7 @@
   - 其 `assets/pet/` 提供了 412×344、24 fps、带 alpha 的 WebP 帧序列与 manifest
   - 本项目只取 13 个剪辑（idle / thinking / working / success / error / pat / poke / tail / eat / stretch / yawn / drag / drop），每隔一帧取样、缩放到 300×250、WebP q45 重编码，得到 820 帧 / 6.90 MB
   - 生成逻辑见 `scripts/build_assets.py`，可复现
+- **本地派生剪辑（本项目原创绘制）**：`rice` 由上述 MIT 的 yawn 动作派生，逐帧叠加原创的白瓷饭碗/米饭/筷子/热气（48 帧）；`sing` 取同段张口动作做乒乓循环（22 帧）。不包含上游 eat 剪辑的蓝色 token；合计 15 组 / 890 帧 / 7.48 MB。生成逻辑见 `scripts/derive_clips.py`。
 - 未使用 dsh-dafeiyu 归档在 `legacy/dafeiyu/` 的旧 BigFish 素材（其许可受限）。
 
 ## 2. 交互与工程设计的参考（未复制代码）

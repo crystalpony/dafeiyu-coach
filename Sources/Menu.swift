@@ -149,7 +149,7 @@ extension AppController {
         let alert = NSAlert()
         alert.messageText = "桌面大肥鱼 Coach \(kVersion)"
         alert.informativeText = """
-        独立版桌宠：agent 通过 skills / CLI / MCP 调用，指针 + 气泡 + 13 段动画。
+        独立版桌宠：agent 通过 skills / CLI / MCP 调用，指针 + 气泡 + 15 段动画。
         动画素材 \(manifest.clips.count) 组，\(String(format: "%.1f", Double(size) / 1048576)) MB。
         Socket: \(Paths.socket.path)
         配置: \(Paths.home.path)

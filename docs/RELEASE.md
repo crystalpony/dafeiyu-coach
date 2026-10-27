@@ -1,4 +1,4 @@
-# 发布说明 · 1.1.0 · 129/129 审计
+# 发布说明 · 1.1.0 · 134/134 审计
 
 > 这是**发布准备**，仓库仍为 private；确认验收后转 public 并发布本 release。
 
@@ -6,7 +6,7 @@
 
 | 平台 | 文件 | 说明 |
 | --- | --- | --- |
-| macOS | `dafeiyu-coach-1.1.0-macos.zip` | `Dafeiyu Coach.app`（universal，含 13 段动画/音乐适配器/skills）+ CLI |
+| macOS | `dafeiyu-coach-1.1.0-macos.zip` | `Dafeiyu Coach.app`（universal，含 15 段动画/音乐适配器/skills）+ CLI |
 | Windows | `dafeiyu-coach-1.1.0-windows.zip` | 桌面窗口版 `dafeiyu gui` + 终端版 `dafeiyu tui` + `install.ps1` + SMTC/clips |
 | 校验 | `SHA256SUMS` | 见 `dist/SHA256SUMS`；当前 8.3 MB / 7.1 MB |
 

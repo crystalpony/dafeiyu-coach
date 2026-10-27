@@ -25,7 +25,7 @@
 ┌───────────────▼─────────────────────────────────────────────┐
 │ dafeiyu-daemon（Swift + AppKit，单二进制）                    │
 │  AppController   任务状态机、设置/会话、菜单栏、命令分发       │
-│  PetView         13 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸/zzz  │
+│  PetView         15 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸/zzz  │
 │  BubbleView      标题/正文/提示/徽章/进度点/自动收起           │
 │  PointerView     每屏一层：脉冲圈、箭头、虚线、标签            │
 │  ClipPlayer      按需解码 + NSCache(28 帧) + 12/24 fps        │
@@ -136,22 +136,23 @@ struct CoachSession { id, title, steps[], index, done[], agent, finished, update
 
 ## 动画
 
-- `Runtime/clips/manifest.json` 描述每个剪辑的 fps、loop、帧列表；帧为 300×250 WebP（带 alpha）。
-- `ClipPlayer` 按需 `NSImage(contentsOfFile:)`，NSCache 限制 28 帧，避免 820 帧同时解码。
+- `Runtime/clips/manifest.json` 描述每个剪辑的 fps、loop、帧列表；帧为 300×250 WebP（带 alpha）。`rice` / `sing` 由 `scripts/derive_clips.py` 从 MIT 的 yawn 动作派生：前者逐帧绘制原创白瓷饭碗并一次性播放，后者取张口段乒乓循环。
+- `ClipPlayer` 按需 `NSImage(contentsOfFile:)`，NSCache 限制 28 帧，避免 890 帧同时解码。
 - 12 fps 主时钟逻辑：24 Hz Timer 累加 dt，只有跨过 1/fps 才换帧并 `needsDisplay`；`drop` 保留 24 fps 更顺。
 - 非循环剪辑结束后回调；默认自动回 idle（autoIdle）。
 - 窗口被遮挡（`occlusionState` 不含 `.visible`）或隐藏时暂停换帧；睡眠时仍保留低频时钟但不重绘。
 
 ## 气泡与指针
 
-- 气泡宽度 336 pt，按内容测高；整体鼠标穿透，仅右上角 24×24 的关闭按钮窗口可点。
-- 尾巴根据气泡在桌宠左/右自动翻转；屏幕边缘 clamp。
+- 普通气泡宽度 336 pt，按内容测高；整体鼠标穿透，仅右上角 24×24 的关闭按钮窗口可点。
+- 唱歌歌词条固定 316×62 pt，贴在鱼头顶居中（放不下则移到下方），只有歌名小字 + 当前句一行，单行截断，无关闭按钮。
+- 普通气泡尾巴根据位置在左/右自动翻转；歌词条尾巴朝下指向鱼头；屏幕边缘 clamp。
 - 指针在目标过期（`hold`）或新任务无坐标时清除；标签贴边 clamp，必要时移到圆环下方。
 - 气泡关闭只是 `bubbleUserHidden`，下一条内容会重新展开；桌宠上保留「…」提示。
 
 ## 陪伴
 
-- 1 Hz idle tick：10 分钟无命令 → yawn + zzz；否则每 70–150 s 随机：待机台词 / 伸懒腰或打哈欠 / 游到鼠标再回来。
+- 1 Hz idle tick：10 分钟无命令 → yawn + zzz；否则每 70–150 s 随机：待机台词 / 伸懒腰或打哈欠 / 游到鼠标再回来。唱歌期间跳过睡觉与待机小动作，歌词超过 30 s 未更新自动收麦。
 - 前台应用切换（NSWorkspace 通知）：非安静、无任务、气泡未显示、距上次 ≥150 s 时，按应用类型说一句。
 - 安静模式关闭所有主动台词与游走；显式命令（feed/dance/quip）仍可用。
 
@@ -165,7 +166,7 @@ struct CoachSession { id, title, steps[], index, done[], agent, finished, update
 
 ## 性能取舍
 
-- universal 单二进制约 1.1 MB，不引入 SwiftPM 依赖；素材 6.90 MB（13 组 / 820 帧）+ BSD 音乐适配器 196 KB。
+- universal 单二进制约 1.1 MB，不引入 SwiftPM 依赖；素材 7.48 MB（15 组 / 890 帧）+ BSD 音乐适配器 669 KB。
 - 待机 24 Hz 定时器 + 12 fps 换帧；指针激活时才 24 Hz 重绘全屏透明层。
 - 70–82 MB RSS 主要来自 AppKit 窗口/图层与已解码帧缓存；不是帧全量常驻。
 - 冷启动 0.30 s（AppKit + 首帧预取 3 帧）。

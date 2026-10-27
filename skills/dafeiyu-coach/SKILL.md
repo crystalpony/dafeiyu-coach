@@ -1,6 +1,6 @@
 ---
 name: dafeiyu-coach
-description: 桌面大肥鱼 Coach —— 在 macOS 桌面上用指针圈、语言气泡和 13 段动画陪用户一步一步完成任务。当用户说“让大肥鱼/桌宠指导我”“指着屏幕教我”“一步一步带我操作”“叫大肥鱼出来陪我”，或需要做可视化 onboarding、软件操作演示、界面导览、跟着我一步步点时使用。Use when the user wants a desktop fish/pet to point at UI, coach them step by step, or give visible on-screen guidance with a pointer ring, speech bubbles, and animations.
+description: 桌面大肥鱼 Coach —— 在 macOS 桌面上用指针圈、语言气泡和 15 段动画陪用户一步一步完成任务。当用户说“让大肥鱼/桌宠指导我”“指着屏幕教我”“一步一步带我操作”“叫大肥鱼出来陪我”，或需要做可视化 onboarding、软件操作演示、界面导览、跟着我一步步点时使用。Use when the user wants a desktop fish/pet to point at UI, coach them step by step, or give visible on-screen guidance with a pointer ring, speech bubbles, and animations.
 ---
 
 # 桌面大肥鱼 Coach
@@ -9,7 +9,7 @@ description: 桌面大肥鱼 Coach —— 在 macOS 桌面上用指针圈、语�
 
 - 用**指针圈 + 虚线**指向屏幕上的具体位置（鼠标穿透，不挡操作）；
 - 用**气泡**说一句很短的话，气泡上有步骤徽章和进度圆点；
-- 播放**13 段动画**：待机、思考、工作、成功、出错、摸头、被戳、摇尾巴、吃东西、伸懒腰、打哈欠、被拖走、落地；
+- 播放**15 段动画**：待机、思考、工作、成功、出错、摸头、被戳、摇尾巴、吃东西、伸懒腰、打哈欠、被拖走、落地、吃饭、唱歌；
 - 把任务拆成步骤，**一步一步陪用户做完**；
 - 没任务时待机陪伴（伸懒腰、看应用说一句话、困了打哈欠），不会打扰。
 

@@ -27,6 +27,16 @@ jobs:
         run: python -m py_compile bin/dafeiyu bin/dafeiyu_music.py bin/dafeiyu_tui.py bin/dafeiyu_mcp.py
       - name: TUI render
         run: python bin/dafeiyu_tui.py --once --no-color
+      - name: Derived clips (rice / sing)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          m = json.load(open('Runtime/clips/manifest.json', encoding='utf-8'))['clips']
+          assert m['rice']['frameCount'] == 48 and not m['rice']['loop'], m['rice']
+          assert m['sing']['frameCount'] == 22 and m['sing']['loop'], m['sing']
+          print('rice/sing ok')
+          PY
       - name: GUI dependencies
         run: python -m pip install Pillow
       - name: GUI check

@@ -42,7 +42,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var musicLastUpdate: Date?
     var focusUntil: Date?
     var quietUntil: Date?
-    var feeding = false
+    var lastNoteAt = Date.distantPast
 
     // 指针状态
     var pointerGlobal: CGPoint?
@@ -275,6 +275,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     force: Bool = true) {
         bubbleHideWork?.cancel()
         bubbleKind = kind
+        bubbleView.compactMusic = (kind == .music)
+        bubbleView.tailAtBottom = (kind == .music)
         bubbleView.alphaValue = 1.0
         bubbleView.title = title
         bubbleView.text = text
@@ -312,7 +314,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func layoutBubble() {
         let base = BubbleView.measure(title: bubbleView.title, text: bubbleView.text,
                                       subtext: bubbleView.subtext,
-                                      badge: bubbleView.badge, total: bubbleView.total)
+                                      badge: bubbleView.badge, total: bubbleView.total,
+                                      music: bubbleKind == .music)
         let s = CGFloat(settings.bubbleScale)
         bubbleView.baseSize = base
         bubbleView.contentScale = s
@@ -329,6 +332,24 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let screen = petWindow.screen ?? ScreenSpace.mainScreen
         let vf = screen.visibleFrame
         let gap: CGFloat = 8
+
+        if bubbleKind == .music {
+            // 歌词贴在头顶，居中，不挡住桌面
+            var ox = clamp(pf.midX - bsize.width / 2, vf.minX + 4, vf.maxX - bsize.width - 4)
+            var oy = pf.maxY + 6
+            if oy + bsize.height > vf.maxY - 4 {
+                oy = pf.minY - bsize.height - 6
+            }
+            ox = clamp(ox, vf.minX + 4, vf.maxX - bsize.width - 4)
+            oy = clamp(oy, vf.minY + 4, vf.maxY - bsize.height - 4)
+            bubbleWindow.setFrameOrigin(NSPoint(x: ox, y: oy))
+            bubbleView.tailOnRight = false
+            bubbleView.tailAtBottom = true
+            bubbleView.needsDisplay = true
+            closeWindow.orderOut(nil)
+            return
+        }
+
         var originX: CGFloat
         var tailOnRight: Bool
         if pf.maxX + gap + bsize.width <= vf.maxX - 4 {
@@ -384,7 +405,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         if bubbleVisible {
             bubbleWindow.orderFrontRegardless()
-            closeWindow.orderFrontRegardless()
+            if bubbleKind == .music {
+                closeWindow.orderOut(nil)
+            } else {
+                closeWindow.orderFrontRegardless()
+            }
         } else {
             bubbleWindow.orderOut(nil)
             closeWindow.orderOut(nil)
@@ -589,55 +614,6 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    func petDance() {
-        wake()
-        player.play("success", loop: false, autoIdle: true, transition: 0.18, priority: 80)
-        petView.burstConfetti(count: 18)
-        petView.burstHearts(count: 4)
-        showBubble(title: "", text: "看我的！转个圈～", badge: "", tone: .success, hold: 4)
-    }
-
-    func feed() {
-        wake()
-        feeding = true
-        petView.feeding = true
-        settings.riceCount = (settings.riceCount ?? 0) + 1
-        saveSettings(settings)
-        player.play("eat", loop: false, autoIdle: true, transition: 0.16, priority: 60)
-        petView.burstHearts(count: 5)
-        showBubble(title: "", text: "米饭！谢谢投喂，第 \(settings.riceCount ?? 1) 碗。", badge: "添饭", tone: .success, hold: 4.5)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.8) { [weak self] in
-            guard let self else { return }
-            self.feeding = false
-            self.petView.feeding = false
-        }
-    }
-
-    func startFocus(minutes: Double) {
-        wake()
-        let m = max(0.01, min(180, minutes))
-        focusUntil = Date().addingTimeInterval(m * 60)
-        player.play("yawn", loop: false, autoIdle: true, transition: 0.18, priority: 60)
-        let label = m >= 1 ? "\(Int(m.rounded())) 分钟" : "\(Int(m * 60)) 秒"
-        showBubble(title: "专注 \(label)", text: "我去眯一会儿。时间到了叫你，先专心做事。",
-                   badge: "番茄钟", tone: .thinking, hold: 6)
-        logLine("focus start \(m)m")
-    }
-
-    func finishFocus() {
-        focusUntil = nil
-        guard session == nil else { return }
-        player.play("success", loop: false, autoIdle: true, transition: 0.18, priority: 80)
-        petView.burstHearts(count: 4)
-        showBubble(title: "时间到", text: "休息一下，喝口水，站起来走两步。",
-                   badge: "番茄钟完成", tone: .success, kind: .success, hold: 10)
-    }
-
-    func cancelFocus() {
-        focusUntil = nil
-        showBubble(title: "", text: "好，专注取消。", badge: "番茄钟", tone: .coach, hold: 3)
-    }
-
     func wake() {
         lastCommandAt = Date()
         if sleeping {
@@ -726,6 +702,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         petView.phase += CGFloat(dt) * 1.1
         if petView.pulse > 0 { petView.pulse = max(0, petView.pulse - CGFloat(dt) * 2.4) }
         petView.tickEffects(CGFloat(dt))
+        if singing, Date().timeIntervalSince(lastNoteAt) > 0.55 {
+            lastNoteAt = Date()
+            petView.spawnNote()
+        }
 
         if let g = glide {
             let t = min(1, (now - g.start) / g.duration)
@@ -888,9 +868,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             singing = true
             musicLastUpdate = Date()
             petView.singing = true
-            player.play("idle", loop: true, autoIdle: true)
+            player.play("sing", loop: true, autoIdle: true, transition: 0.22, priority: 85)
             showBubble(title: songArtist.isEmpty ? songTitle : "\(songTitle) · \(songArtist)",
-                       text: "准备开唱…", badge: "♪ 唱歌中", tone: .music, kind: .music, hold: 0)
+                       text: "准备开唱…", badge: "♪", tone: .music, kind: .music, hold: 0)
             return ["ok": true, "singing": true]
 
         case "lyric":
@@ -909,15 +889,15 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if !singing {
                 singing = true
                 petView.singing = true
-                player.play("idle", loop: true, autoIdle: true)
+                player.play("sing", loop: true, autoIdle: true, transition: 0.22, priority: 85)
             }
             musicLastUpdate = Date()
             let total = (cmd["total"] as? Double).map { Int($0) } ?? 0
             let index = (cmd["index"] as? Double).map { Int($0) } ?? 0
-            let badge = total > 0 ? "♪ \(min(index + 1, total))/\(total)" : "♪ 唱歌中"
+            let badge = total > 0 ? "♪ \(min(index + 1, total))/\(total)" : "♪"
             showBubble(title: artist.isEmpty ? title : "\(title) · \(artist)",
                        text: line.isEmpty ? "♪ 跟着哼" : line,
-                       badge: badge, tone: .music, subtext: next, kind: .music, hold: 0)
+                       badge: badge, tone: .music, subtext: "", kind: .music, hold: 0)
             petView.spawnNote()
             return ["ok": true, "singing": true]
 

@@ -169,19 +169,35 @@ class Core:
         self.quiet = False
         self.point = None
         self.anim = "idle"
+        self._last_anim = "idle"
+        self._anim_since = time.time()
+        self.feeding_until = 0.0
         self.bubble_until = 0.0
         self.last = time.time()
         self.started = time.time()
 
     def _snap(self) -> dict:
-        remain = max(0, int(self.focus_until - time.time())) if self.focus_until else 0
-        visible = bool(self.bubble) and (self.bubble_until == 0 or time.time() < self.bubble_until)
+        now = time.time()
+        if self.anim != self._last_anim:
+            self._last_anim = self.anim
+            self._anim_since = now
+        # 一次性动作播完回唱歌/待机，避免 GUI 停在最后一帧
+        dur = {"pat": 4.0, "success": 4.8, "error": 3.2, "poke": 3.2, "tail": 3.2,
+               "rice": 4.0, "yawn": 4.0, "stretch": 4.0, "drop": 1.6}.get(self.anim)
+        if dur and now - self._anim_since > dur:
+            self.anim = "sing" if self.singing else "idle"
+            self._last_anim = self.anim
+            self._anim_since = now
+        remain = max(0, int(self.focus_until - now)) if self.focus_until else 0
+        visible = bool(self.bubble) and (self.bubble_until == 0 or now < self.bubble_until)
         return dict(title=self.title, steps=list(self.steps), index=self.index, done=list(self.done),
                     bubble=self.bubble, badge=self.badge, bubble_title=self.bubble_title,
                     tone=self.tone, song=self.song, artist=self.artist, lyric=self.lyric,
                     next=self.next_lyric, singing=self.singing, rice=self.rice,
                     focusRemaining=remain, quiet=self.quiet, point=self.point,
                     clip=self.anim, bubbleVisible=visible,
+                    bubbleCompact=bool(self.singing and self.tone == "music"),
+                    feeding=time.time() < self.feeding_until,
                     total=len(self.steps), finished=bool(self.steps) and self.index >= len(self.steps))
 
     def snapshot(self) -> dict:
@@ -328,9 +344,9 @@ class Core:
             if name == "music_start":
                 self.song = cmd.get("title", ""); self.artist = cmd.get("artist", "")
                 self.singing = True; self.music_at = time.time()
-                self.anim = "idle"; self.bubble_until = 0
+                self.anim = "sing"; self.bubble_until = 0
                 self.bubble_title = f"{self.song} · {self.artist}" if self.artist else self.song
-                self.badge = "♪ 唱歌中"; self.bubble = "准备开唱…"; self.tone = "music"
+                self.badge = "♪"; self.bubble = "准备开唱…"; self.tone = "music"
                 return {"ok": True}
             if name == "lyric":
                 if self.steps or self.quiet:
@@ -342,9 +358,9 @@ class Core:
                 self.singing = True; self.music_at = time.time()
                 self.bubble_title = f"{self.song} · {self.artist}" if self.artist else self.song
                 total = int(cmd.get("total") or 0); idx = int(cmd.get("index") or 0)
-                self.badge = f"♪ {min(idx+1,total)}/{total}" if total else "♪ 唱歌中"
+                self.badge = f"♪ {min(idx+1,total)}/{total}" if total else "♪"
                 self.bubble = self.lyric
-                self.tone = "music"; self.anim = "idle"; self.bubble_until = 0
+                self.tone = "music"; self.anim = "sing"; self.bubble_until = 0
                 return {"ok": True}
             if name == "music_stop":
                 self.singing = False; self.lyric = ""; self.next_lyric = ""; self.anim = "idle"
@@ -354,7 +370,10 @@ class Core:
             if name == "feed":
                 self.rice += 1
                 self.bubble_title = ""; self.badge = "添饭"
-                self.bubble = f"米饭！谢谢投喂，第 {self.rice} 碗。"; self.tone = "success"; self.anim = "eat"
+                self.bubble = f"米饭！谢谢投喂，第 {self.rice} 碗。"; self.tone = "success"; self.anim = "rice"
+                self._last_anim = "rice"; self._anim_since = time.time()
+                self.bubble_until = time.time() + 4.5
+                self.feeding_until = time.time() + 3.5
                 return {"ok": True, "rice": self.rice}
             if name == "focus":
                 if cmd.get("cancel"):
@@ -473,6 +492,19 @@ def render(core: Core, width: int, color: bool) -> str:
     reset = c("reset") if color else ""
     w = max(44, min(width, 72))
     lines = []
+    compact = bool(s.get("bubbleCompact"))
+    if compact:
+        # 歌词贴在头顶：一行歌词 + 一行歌名，不铺大框
+        lyric = s.get("lyric") or s.get("bubble") or "♪ 跟着哼"
+        lines.append(f"{c('magenta')}   ♪ {first_line(lyric, w - 8)[0]}{reset}")
+        meta = s.get("song") or ""
+        if s.get("artist"):
+            meta = f"{meta} · {s['artist']}" if meta else s["artist"]
+        if s.get("badge"):
+            meta = f"{meta}   {s['badge']}" if meta else s["badge"]
+        if meta:
+            lines.append(f"{c('gray')}     {first_line(meta, w - 8)[0]}{reset}")
+        lines.append("")
     fish = SLEEP_FISH if not s["singing"] and not s["bubble"] and not s["steps"] else FISH
     for i, f in enumerate(fish):
         tail = ""
@@ -487,7 +519,7 @@ def render(core: Core, width: int, color: bool) -> str:
     if s["singing"]:
         lines.append(f"{c('magenta')}      ♪   ♫{reset}")
     lines.append("")
-    if (s["bubble"] or s["bubble_title"]) and s.get("bubbleVisible", True):
+    if (s["bubble"] or s["bubble_title"]) and s.get("bubbleVisible", True) and not compact:
         inner = w - 4
         box = []
         if s["bubble_title"]:
@@ -505,7 +537,7 @@ def render(core: Core, width: int, color: bool) -> str:
         done = sum(1 for d in s["done"] if d)
         bar = "#" * done + "-" * (s["total"] - done)
         lines.append(f"  [{bar}] {done}/{s['total']} 步")
-    if s["singing"] and s["song"]:
+    if s["singing"] and s["song"] and not compact:
         lines.append(f"{c('magenta')}  ♪ {s['song']} - {s['artist']}{reset}")
         if s["next"]:
             lines.append(f"{c('gray')}    {s['next'][:w-6]}{reset}")

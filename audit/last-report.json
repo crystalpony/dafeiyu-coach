@@ -1,11 +1,11 @@
 {
   "ok": true,
-  "passed": 129,
-  "total": 129,
+  "passed": 134,
+  "total": 134,
   "groups": {
     "static": [
-      9,
-      9
+      11,
+      11
     ],
     "size": [
       5,
@@ -20,12 +20,12 @@
       28
     ],
     "music": [
-      4,
-      4
+      6,
+      6
     ],
     "interaction": [
-      3,
-      3
+      4,
+      4
     ],
     "transition": [
       1,
@@ -70,7 +70,7 @@
     {
       "name": "构建产物存在",
       "ok": true,
-      "detail": "1103 KB",
+      "detail": "1104 KB",
       "group": "static"
     },
     {
@@ -92,21 +92,21 @@
       "group": "static"
     },
     {
-      "name": "内置单元自测（步骤/坐标/13 组素材）",
+      "name": "内置单元自测（步骤/坐标/15 组素材）",
       "ok": true,
-      "detail": "{\"ok\":true,\"tests\":\"passed\",\"clips\":13}",
+      "detail": "{\"ok\":true,\"tests\":\"passed\",\"clips\":15}",
       "group": "static"
     },
     {
       "name": "素材清单完整",
       "ok": true,
-      "detail": "13 组 / 820 帧 / 缺失 0",
+      "detail": "15 组 / 890 帧 / 缺失 0",
       "group": "static"
     },
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1098 行",
+      "detail": "Controller.swift 1078 行",
       "group": "static"
     },
     {
@@ -116,15 +116,27 @@
       "group": "static"
     },
     {
+      "name": "米饭/唱歌独立剪辑",
+      "ok": true,
+      "detail": "rice=48 sing=22",
+      "group": "static"
+    },
+    {
+      "name": "米饭碗朝上可见（白瓷碗/米饭，不是 token）",
+      "ok": true,
+      "detail": "碗体白像素 27% / 源动作 2%",
+      "group": "static"
+    },
+    {
       "name": "二进制 < 2 MB",
       "ok": true,
-      "detail": "1103 KB",
+      "detail": "1104 KB",
       "group": "size"
     },
     {
       "name": "动画素材 < 8 MB",
       "ok": true,
-      "detail": "6.90 MB / 820 帧",
+      "detail": "7.48 MB / 890 帧",
       "group": "size"
     },
     {
@@ -136,13 +148,13 @@
     {
       "name": "运行体总计 < 10 MB",
       "ok": true,
-      "detail": "8.63 MB",
+      "detail": "9.21 MB",
       "group": "size"
     },
     {
       "name": "源码 < 200 KB",
       "ok": true,
-      "detail": "120 KB",
+      "detail": "123 KB",
       "group": "size"
     },
     {
@@ -154,7 +166,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-hvl9cyud/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-tazw0dl3/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -202,25 +214,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5260 字符",
+      "detail": "5266 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5260 字符",
+      "detail": "5266 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5260 字符",
+      "detail": "5266 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5260 字符",
+      "detail": "5266 字符",
       "group": "install"
     },
     {
@@ -274,7 +286,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 93572",
+      "detail": "pid 8838",
       "group": "e2e"
     },
     {
@@ -338,9 +350,9 @@
       "group": "e2e"
     },
     {
-      "name": "13 段动画均可播放",
+      "name": "15 段动画均可播放",
       "ok": true,
-      "detail": "全部 13 个 clip",
+      "detail": "全部 15 个 clip",
       "group": "e2e"
     },
     {
@@ -406,7 +418,7 @@
     {
       "name": "帧动画运行",
       "ok": true,
-      "detail": "frame 0 → 6",
+      "detail": "frame 0 → 7",
       "group": "e2e"
     },
     {
@@ -424,13 +436,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 93644",
+      "detail": "旧 pid 8909",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'BA7DBA62-B024-443B-8409-AF10C0EA3643', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '54056843-D9AF-41D5-97F9-ACE5C18C3BA0', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -452,6 +464,18 @@
       "group": "music"
     },
     {
+      "name": "唱歌使用独立 sing 动画",
+      "ok": true,
+      "detail": "clip=sing",
+      "group": "music"
+    },
+    {
+      "name": "歌词条贴头顶且紧凑",
+      "ok": true,
+      "detail": "316x62 @ 495 < 563",
+      "group": "music"
+    },
+    {
       "name": "music off 收起",
       "ok": true,
       "detail": "",
@@ -470,9 +494,15 @@
       "group": "interaction"
     },
     {
+      "name": "米饭使用独立 rice 动画（不是 eat）",
+      "ok": true,
+      "detail": "clip=rice",
+      "group": "interaction"
+    },
+    {
       "name": "番茄钟到点",
       "ok": true,
-      "detail": "focus=0 clip=success",
+      "detail": "focus=0 clip=rice",
       "group": "interaction"
     },
     {
@@ -484,13 +514,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.1710442709736526",
+      "detail": "blend=0.055159375187940896",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 64815, \"token\": \"f81fe67e6dfa938200ca7e0164cbdc19\", \"pid\": 93714}",
+      "detail": "{\"port\": 56650, \"token\": \"95d1d5ef8fcc582329e84bd4f61f138f\", \"pid\": 8976}",
       "group": "tui"
     },
     {
@@ -580,25 +610,25 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.29s",
+      "detail": "0.30s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "4.4%",
+      "detail": "3.6%",
       "group": "perf"
     },
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "71 MB",
+      "detail": "70 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "7.3%",
+      "detail": "6.1%",
       "group": "perf"
     },
     {
@@ -610,7 +640,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 4.4% / 71MB · active 7.3% / 80MB",
+      "detail": "idle 3.6% / 70MB · active 6.1% / 80MB",
       "group": "perf"
     },
     {
@@ -640,7 +670,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "11186 字符",
+      "detail": "11270 字符",
       "group": "docs"
     },
     {
@@ -790,31 +820,31 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "308 KB",
+      "detail": "303 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "306 KB",
+      "detail": "300 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "289 KB",
+      "detail": "281 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "293 KB",
+      "detail": "281 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "288 KB",
+      "detail": "280 KB",
       "group": "visual"
     },
     {
@@ -836,5 +866,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T21:39:09"
+  "at": "2026-10-27T22:16:14"
 }

@@ -5,7 +5,7 @@
 
 ## 基线（迭代前）
 
-- 原生桌宠：13 段动画、指针、气泡、步骤、米饭、番茄钟、会议模式、减少动态。
+- 原生桌宠：15 段动画、指针、气泡、步骤、米饭、番茄钟、会议模式、减少动态。
 - 音乐：macOS 用 BSD MediaRemoteAdapter 读系统 Now Playing（Apple Music / 网易云 / QQ 音乐），Windows 用 SMTC；LRCLIB + 本地 LRC；空闲时唱歌。
 - 终端版：`dafeiyu tui`，ASCII 宠物、歌词、米饭、步骤，Windows/macOS 共用 Python 核心。
 
@@ -90,7 +90,7 @@
 
 **发现/改动**
 
-- 新增 `bin/dafeiyu_gui.py`：Tk + Pillow，透明无边框置顶窗口、拖拽、13 段 WebP 动画 + `Image.blend` 交叉淡化、气泡、指针圈、米饭/番茄钟/右键菜单。
+- 新增 `bin/dafeiyu_gui.py`：Tk + Pillow，透明无边框置顶窗口、拖拽、15 段 WebP 动画 + `Image.blend` 交叉淡化、气泡、指针圈、米饭/番茄钟/右键菜单。
 - 复用终端版 `Core/Server`：Windows GUI 自己当核心（本机 TCP + token），CLI/MCP/skills 仍可控制；不与 TUI 重复实现状态机。
 - Windows 透明色抠图 + Win32 `WS_EX_TRANSPARENT/LAYERED/NOACTIVATE` 点击穿透；`pythonw` 启动无控制台。
 - `dafeiyu gui` / `dafeiyu-gui.cmd`；`install.ps1` 复制 clips、安装 Pillow。
@@ -101,6 +101,29 @@
 **追加验收（网易云兜底）**：LRCLIB 缺《一念之间》歌词，接入 `music.163.com` 可选兜底，拿到同步 LRC 并过滤作词/作曲行；`provider=lrclib` 可关闭，隐私说明同步。**追加验收（QQ 真机）**：QQ 音乐播放被系统识别为 `com.tencent.QQMusicMac`，歌名/歌手立即显示；发现 LRCLIB 网络慢会阻塞切歌，已改为“先推歌名，歌词后台 fetch”，暂停/切歌不再被网络卡住。该曲无歌词时“跟着哼”，不伪造。
 
 **验收边界**：Windows 窗口版是 Tk/Pillow，视觉与 macOS AppKit 不等同；CI 冒烟≠真实 Windows 人工验收。若要求原生 WinUI/Tauri 级体验，需要下一轮重写。
+
+## 用户反馈修正：米饭独立动画 + 头顶歌词条
+
+**反馈原话**：米饭动画在吃 token 的动画上，碗是倒过来的；唱歌气泡太占地方，要求有唱歌动画、歌词在头上且不占地方。
+
+**发现**
+
+- `feed` 之前复用 `eat` 剪辑，画面里有四颗蓝色 token 光球；Swift 侧再叠一只倒扣的饭碗，既重复又方向错误。
+- 唱歌只在原有待机动作上轻微摇摆，歌词走通用大气泡（约 336×78，带标题/徽章/下一句），视觉占用与“陪伴”定位不符。
+
+**改动**
+
+- 生成独立的 `rice` 剪辑（48 帧 / 4s / 一次性）：以 MIT 的 yawn 动作为底，逐帧绘制原创白瓷碗（碗口朝上）、米饭堆、筷子、热气与飞向嘴边的米粒；不再包含 token，也不再用运行时代码叠碗。
+- 生成独立的 `sing` 剪辑（22 帧 / 1.8s / 循环）：取张口段做乒乓循环并烘焙轻微摇摆；唱歌时只播这一条，音符由粒子层补充。
+- 歌词改为头顶紧凑条（316×62）：第一行歌名/歌手小字，第二行当前句，单行截断；尾巴向下指向鱼头，不再显示上一句/下一句、进度点和关闭按钮，也不占用侧边桌面。
+- TUI 把歌词放到 ASCII 鱼上方一行；Windows GUI 使用 250×56 的窄条，居中贴头顶。
+- 修：唱歌/米饭优先级低于正在收尾的 success 动画时会“起不来”，提高到 85；唱歌期间不再触发睡觉/待机小动作；吃完饭后若还在唱歌自动回到 `sing`。
+- 新增审计：`sing`/`rice` 独立性、歌词条尺寸与位置、米饭碗白像素占比（27% vs 源动作 2%）、喂饭剪辑名、15 段全播放。
+
+**验收**
+
+- 真机截图见 `audit/screenshots/04-music.png` / `05-rice.png`；TUI 样例见 `tui-sample.txt`；Windows GUI 冒烟覆盖 `sing` 与紧凑歌词条。
+- 审计 134/134 通过；`rice=48` / `sing=22`，素材 15 组 / 890 帧 / 7.48 MB。
 
 ## 刻意没做的事（避免“假完成”）
 

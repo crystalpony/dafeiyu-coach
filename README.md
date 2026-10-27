@@ -1,6 +1,6 @@
 # 桌面大肥鱼 Coach 1.1.0
 
-> 一只住在 macOS 桌面上的大肥鱼。Agent 在对话里调用她，她就在屏幕上用**指针圈、语言气泡和 13 段动画**，一步一步带用户把事情做完；放歌时会跟着歌词轻轻唱；没有任务时，她安静地陪着。
+> 一只住在 macOS 桌面上的大肥鱼。Agent 在对话里调用她，她就在屏幕上用**指针圈、语言气泡和 15 段动画**，一步一步带用户把事情做完；放歌时会跟着歌词轻轻唱；没有任务时，她安静地陪着。
 >
 > **平台**：macOS 原生桌宠（Swift/AppKit）· Windows 桌面窗口版（Tk + Pillow，透明置顶、动画/气泡/指针）· Windows/macOS/Linux 终端轻量版（Python TUI）· 同一套 skills / CLI / MCP。
 
@@ -22,13 +22,13 @@
 
 - **指着屏幕教**：主屏任意坐标画脉冲圆环、箭头、虚线牵引和标签；窗口鼠标穿透，不挡操作。
 - **一步一步**：`guide` 建任务，气泡显示「第 2/5 步」、标题、正文、提示与进度圆点；`next` 推进，最后一步撒花。
-- **13 段动画**：待机、思考、工作、成功、出错、摸头、被戳、摇尾巴、吃东西、伸懒腰、打哈欠、被拖走、落地。
-- **放歌时唱歌**：读系统 Now Playing（Apple Music / 网易云 / QQ 音乐 / Spotify），按歌词时间轴显示当前句和下一句，鱼会轻轻摇、飘音符；没有歌词就诚实显示“跟着哼”。歌词来自 LRCLIB 或本地 LRC，可完全离线。
+- **15 段动画**：待机、思考、工作、成功、出错、摸头、被戳、摇尾巴、吃东西、伸懒腰、打哈欠、被拖走、落地，以及独立的**吃饭**和**唱歌**动画。
+- **放歌时唱歌**：读系统 Now Playing（Apple Music / 网易云 / QQ 音乐 / Spotify），播放独立的唱歌动画；歌词以一条紧凑的歌词条贴在头顶，只显示歌名和当前句（超长自动省略），不再占用大片桌面。没有歌词就诚实显示“跟着哼”。歌词来自 LRCLIB 或本地 LRC，可完全离线。
 - **陪伴**：待机小动作、按前台应用说一句（写代码 / 查资料 / 回消息 / 做音乐）、困了打哈欠睡觉；会议模式一键安静。
-- **趣味互动**：摸头、戳身体、碰尾巴、拖拽、双击转圈、**添一碗米饭**、番茄钟专注、游到鼠标边、感知应用切换。
-- **Windows 桌面窗口版**：`dafeiyu gui`，透明无边框置顶、13 段动画 + 交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用同一核心。
+- **趣味互动**：摸头、戳身体、碰尾巴、拖拽、双击转圈、**添一碗米饭**（独立米饭动画：白瓷碗、米饭、筷子、热气，不复用吃 token 的剪辑）、番茄钟专注、游到鼠标边、感知应用切换。
+- **Windows 桌面窗口版**：`dafeiyu gui`，透明无边框置顶、15 段动画 + 交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用同一核心。
 - **终端轻量版**：`dafeiyu tui`，ASCII 鱼 + 歌词 + 步骤 + 米饭，Windows/macOS 共用同一核心；不依赖 AppKit。
-- **小体积**：单二进制 1.1 MB（universal）；13 组 / 820 帧动画共 6.90 MB；音乐适配器 196 KB；运行体总计约 8.2 MB。
+- **小体积**：单二进制 1.1 MB（universal）；15 组 / 890 帧动画共 7.48 MB；音乐适配器 669 KB；运行体总计约 9.2 MB。
 - **低占用**：待机 CPU 约 4.7%、RSS 约 71 MB；动画 + 指针约 7.2%、81 MB；冷启动 0.30 s（本机实测，见 [审计](docs/AUDIT.md)）。
 - **好适配**：Qoder / Claude Code / Codex / dsh 四套 skill，三套 `/dafeiyu` 斜杠命令，一个 stdio MCP，外加通用 `AGENTS.md` 片段。
 
@@ -238,7 +238,7 @@ dafeiyu (Python CLI)  ── UNIX 0600 ──►  dafeiyu-daemon (Swift/AppKit, 
                                       └─ lyric 命令 ──► 歌词气泡 + 唱歌
 
 dafeiyu-daemon (Swift + AppKit, universal 单二进制)
-   ├─ PetView         13 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸、zzz
+   ├─ PetView         15 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸、zzz
    ├─ BubbleView      标题 / 正文 / 步骤徽章 / 进度点 / 自动收起
    ├─ PointerView     每屏一层，脉冲圈 + 箭头 + 虚线 + 标签
    ├─ AppController   任务状态机、设置/会话持久化、菜单栏
@@ -255,12 +255,12 @@ dafeiyu-daemon (Swift + AppKit, universal 单二进制)
 | 项目 | 实测 |
 | --- | --- |
 | 二进制 | 1.1 MB（universal arm64 + x86_64） |
-| 动画素材 | 6.90 MB / 13 组 / 820 帧 |
-| 音乐适配器 | 196 KB（MediaRemote framework + Perl 脚本） |
-| 安装后运行体 | ≈ 8.2 MB |
+| 动画素材 | 7.48 MB / 15 组 / 890 帧 |
+| 音乐适配器 | 669 KB（MediaRemote framework + Perl 脚本） |
+| 安装后运行体 | ≈ 9.2 MB |
 | 冷启动 | 0.30 s |
-| 待机 CPU / RSS | 4.7% / 71 MB |
-| 动画 + 指针 CPU / RSS | 7.2% / 81 MB |
+| 待机 CPU / RSS | 3.6% / 70 MB |
+| 动画 + 指针 CPU / RSS | 6.1% / 80 MB |
 
 优化手段：24 Hz 主时钟 + 12 fps 动画、仅在换帧时重绘、窗口被遮挡/隐藏时暂停、LRU 帧缓存、指针层仅在激活时置顶、待机操作限频、10 分钟无交互后睡觉。
 
@@ -297,7 +297,7 @@ python3 audit/audit.py            # 全量（安装到临时 HOME，不碰真实
 python3 audit/audit.py --no-visual
 ```
 
-覆盖 129 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
+覆盖 134 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
 
 ## 许可与致谢
 
@@ -309,7 +309,7 @@ python3 audit/audit.py --no-visual
 
 | 能力 | macOS 原生版 | Windows 终端版 | macOS/Linux 终端版 |
 | --- | --- | --- | --- |
-| 指针圈 / 悬浮气泡 / 13 段动画 | ✅ | 文本气泡 + 步骤（无指针） | 文本气泡 + 步骤 |
+| 指针圈 / 悬浮气泡 / 15 段动画 | ✅ | 文本气泡 + 步骤（无指针） | 文本气泡 + 步骤 |
 | Agent skills / CLI / MCP | ✅ | ✅ | ✅ |
 | 音乐检测 / 歌词 / 唱歌 | ✅ Apple Music / 网易云 / QQ（系统 Now Playing） | ✅ 系统 SMTC | 取决于系统 |
 | 米饭 / 番茄钟 / 会议模式 | ✅ | ✅（会议模式用 `quiet`） | ✅ |

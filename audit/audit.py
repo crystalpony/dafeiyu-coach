@@ -137,12 +137,12 @@ def check_static() -> None:
     record("桌面窗口版依赖/素材", gui_ok, (gui.stdout or gui.stderr).strip()[-120:], "static")
 
     p = run([str(BUILD), "--selftest"])
-    record("内置单元自测（步骤/坐标/13 组素材）", p.returncode == 0, p.stdout.strip(), "static")
+    record("内置单元自测（步骤/坐标/15 组素材）", p.returncode == 0, p.stdout.strip(), "static")
 
     p = run([str(BUILD), "--check"])
     try:
         d = json.loads(p.stdout)
-        ok = p.returncode == 0 and d.get("ok") and d.get("clips") == 13 and d.get("frames") == 820
+        ok = p.returncode == 0 and d.get("ok") and d.get("clips") == 15 and d.get("frames") == 890
         record("素材清单完整", ok, f"{d.get('clips')} 组 / {d.get('frames')} 帧 / 缺失 {len(d.get('missing') or [])}", "static")
     except Exception:
         record("素材清单完整", False, p.stdout[:200] + p.stderr[:200], "static")
@@ -155,13 +155,40 @@ def check_static() -> None:
     record("manifest 许可与来源", "MIT" in man.get("license", "") and "PC2005-cloud/dsh-pet" in json.dumps(man),
            man.get("license", ""), "static")
 
+    clips = man.get("clips") or {}
+    rice = clips.get("rice") or {}
+    sing = clips.get("sing") or {}
+    ok_rice = (rice.get("frameCount") == 48 and rice.get("loop") is False
+               and len(rice.get("frames") or []) == 48
+               and all((ROOT / "Runtime/clips" / f).exists() for f in rice.get("frames") or []))
+    ok_sing = (sing.get("frameCount") == 22 and sing.get("loop") is True
+               and all((ROOT / "Runtime/clips" / f).exists() for f in sing.get("frames") or []))
+    record("米饭/唱歌独立剪辑", ok_rice and ok_sing,
+           f"rice={rice.get('frameCount')} sing={sing.get('frameCount')}", "static")
+
+    try:
+        from PIL import Image
+        def bowl_ratio(rel: str) -> float:
+            im = Image.open(ROOT / "Runtime/clips" / rel).convert("RGBA")
+            crop = im.crop((100, 175, 210, 245))
+            px = list(crop.getdata())
+            opaque = sum(1 for r, g, b, a in px if a > 128)
+            white = sum(1 for r, g, b, a in px if a > 128 and r > 235 and g > 235 and b > 228)
+            return white / max(1, opaque)
+        r_ratio = bowl_ratio(rice["frames"][0])
+        y_ratio = bowl_ratio("yawn/yawn_000.webp")
+        record("米饭碗朝上可见（白瓷碗/米饭，不是 token）", r_ratio > 0.15 and r_ratio > y_ratio * 3,
+               f"碗体白像素 {r_ratio:.0%} / 源动作 {y_ratio:.0%}", "static")
+    except Exception as exc:
+        record("米饭碗朝上可见（白瓷碗/米饭，不是 token）", False, str(exc)[:120], "static")
+
 
 def check_size() -> None:
     section("2. 体积预算")
     bin_size = BUILD.stat().st_size
     clips_size = sum(p.stat().st_size for p in (ROOT / "Runtime/clips").rglob("*") if p.is_file())
     record("二进制 < 2 MB", bin_size < 2 * 1024 * 1024, f"{bin_size/1024:.0f} KB", "size")
-    record("动画素材 < 8 MB", clips_size < 8 * 1024 * 1024, f"{clips_size/1048576:.2f} MB / 820 帧", "size")
+    record("动画素材 < 8 MB", clips_size < 8 * 1024 * 1024, f"{clips_size/1048576:.2f} MB / 890 帧", "size")
     music_size = sum(p.stat().st_size for p in (ROOT / "Runtime/music").rglob("*") if p.is_file())
     record("音乐适配器 < 1 MB", music_size < 1024 * 1024, f"{music_size/1024:.0f} KB", "size")
     total = bin_size + clips_size + music_size
@@ -307,12 +334,12 @@ def check_e2e() -> None:
     record("单独 point px 换算", abs((pt.get("x") or 0) - 1000 / scale) < 1.5, f"x={pt.get('x')}", "e2e")
     coach("clear-point")
 
-    for clip in ["success", "error", "thinking", "pat", "eat", "stretch", "yawn", "drag", "drop", "working", "idle", "poke", "tail"]:
+    for clip in ["success", "error", "thinking", "pat", "eat", "stretch", "yawn", "drag", "drop", "working", "idle", "poke", "tail", "rice", "sing"]:
         r = coach_json("play", clip)
         if not r.get("ok"):
             record(f"play {clip}", False, str(r), "e2e"); break
     else:
-        record("13 段动画均可播放", True, "全部 13 个 clip", "e2e")
+        record("15 段动画均可播放", True, "全部 15 个 clip", "e2e")
 
     coach_json("feed"); coach_json("dance"); coach_json("quip")
     record("趣味互动 feed/dance/quip", True, "", "e2e")
@@ -399,6 +426,13 @@ def check_music_interactions() -> None:
            f"singing={st.get('singing')} lyric={st.get('lyric')}", "music")
     time.sleep(0.3)
     record("歌词气泡可见", st.get("bubbleVisible") is True, "", "music")
+    bubble = st.get("bubble") or {}
+    pet = st.get("pet") or {}
+    record("唱歌使用独立 sing 动画", st.get("clip") == "sing", f"clip={st.get('clip')}", "music")
+    record("歌词条贴头顶且紧凑", st.get("bubbleCompact") is True
+           and bubble.get("h", 999) <= 70 and bubble.get("w", 999) <= 330
+           and bubble.get("topLeftY", 9999) < pet.get("topLeftY", -1),
+           f"{bubble.get('w')}x{bubble.get('h')} @ {bubble.get('topLeftY')} < {pet.get('topLeftY')}", "music")
     run([sys.executable, str(music_bin), "off"], env=env, timeout=10)
     record("music off 收起", status().get("singing") is False, "", "music")
 
@@ -418,8 +452,10 @@ def check_music_interactions() -> None:
 
     rice0 = status().get("rice", 0)
     coach_json("feed")
-    rice1 = status().get("rice", 0)
+    st = status()
+    rice1 = st.get("rice", 0)
     record("米饭计数", rice1 == rice0 + 1, f"{rice0} → {rice1}", "interaction")
+    record("米饭使用独立 rice 动画（不是 eat）", st.get("clip") == "rice", f"clip={st.get('clip')}", "interaction")
 
     coach_json("focus", "--minutes", "0.02")
     time.sleep(2.2)
@@ -702,14 +738,14 @@ def check_visual() -> None:
 
     music_bin = temp_root / ".local/bin/dafeiyu_music.py"
     run([sys.executable, str(music_bin), "test", "--title", "桌面大肥鱼", "--artist", "测试", "--line", "海风轻轻吹过"], env=env_for_temp(), timeout=15)
-    time.sleep(0.5)
+    time.sleep(0.9)
     st = status()
     ok4 = capture(SHOTS / "04-music.png", st.get("pet"), st.get("bubble"), (800, 850), scale, expect_ring=False)
     record("证据 04：歌词 + 唱歌", ok4, str(SHOTS / "04-music.png"), "visual")
     run([sys.executable, str(music_bin), "off"], env=env_for_temp(), timeout=10)
 
     coach_json("feed")
-    time.sleep(0.4)
+    time.sleep(1.0)
     st = status()
     ok5 = capture(SHOTS / "05-rice.png", st.get("pet"), st.get("bubble"), (800, 850), scale, expect_ring=False)
     record("证据 05：米饭 + 饭碗", ok5, str(SHOTS / "05-rice.png"), "visual")
@@ -780,6 +816,19 @@ def main() -> int:
         traceback.print_exc()
         record("审计脚本异常", False, f"{type(exc).__name__}: {exc}", "fatal")
     finally:
+        # 异常退出也要收掉临时守护进程，否则残留窗口会遮挡下一次审计并触发 App Nap
+        try:
+            if cli_path and cli_path.exists():
+                run([str(cli_path), "stop"], env=env_for_temp(), timeout=10)
+        except Exception:
+            pass
+        try:
+            pidfile = temp_root / ".dafeiyu" / "coach.pid"
+            pid = int(pidfile.read_text().strip()) if pidfile.exists() else daemon_pid
+            if pid:
+                os.kill(pid, signal.SIGKILL)
+        except Exception:
+            pass
         time.sleep(0.2)
         if not keep:
             shutil.rmtree(temp_root, ignore_errors=True)

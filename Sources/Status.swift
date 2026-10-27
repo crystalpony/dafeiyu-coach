@@ -44,6 +44,7 @@ extension AppController {
             "playful": settings.playful,
             "petVisible": petVisible,
             "bubbleVisible": bubbleVisible,
+            "bubbleCompact": bubbleKind == .music && bubbleVisible,
             "petScale": settings.petScale,
             "bubbleScale": settings.bubbleScale,
             "sleeping": sleeping,

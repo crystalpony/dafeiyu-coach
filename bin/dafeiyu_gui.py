@@ -3,7 +3,7 @@
 """桌面大肥鱼 · Windows / macOS 桌面窗口版（Tk + Pillow）。
 
 - 透明无边框置顶窗口、拖拽、摸头/戳、右键菜单
-- 13 段 WebP 动画 + 120ms 交叉淡化
+- 15 段 WebP 动画 + 120ms 交叉淡化
 - 气泡步骤 / 歌词 / 米饭 / 番茄钟 / 指针圈
 - 本机 TCP 核心与 CLI/MCP/skills 共用（与 dafeiyu tui 同一 Core/Server）
 
@@ -59,6 +59,11 @@ def wrap_text(text: str, max_chars: int = 24) -> list[str]:
     return out or [""]
 
 
+def truncate(text: str, max_chars: int = 24) -> str:
+    text = (text or "").replace("\n", " ")
+    return text if len(text) <= max_chars else text[: max(1, max_chars - 1)] + "…"
+
+
 def rounded(canvas: tk.Canvas, x1, y1, x2, y2, r, **kw):
     pts = [x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r, x2, y2 - r, x2, y2,
            x2 - r, y2, x1 + r, y2, x1, y2, x1, y2 - r, x1, y1 + r, x1, y1]
@@ -112,7 +117,7 @@ class Animator:
     def resolve(self, name: str) -> str:
         return {"talk": "idle", "point": "working", "celebrate": "success", "dance": "success",
                 "cheer": "success", "greet": "pat", "wave": "pat", "happy": "pat",
-                "snack": "eat", "rice": "eat", "sleepy": "yawn"}.get(name, name)
+                "snack": "eat", "sleepy": "yawn"}.get(name, name)
 
     def _load(self, rel: str) -> Image.Image | None:
         if rel in self.cache:
@@ -211,6 +216,7 @@ class GuiApp:
         self.drag_start = (0, 0, 0, 0)
         self.notes: list[int] = []
         self.hearts: list[int] = []
+        self.last_rice = None
         self.root = tk.Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
@@ -362,11 +368,23 @@ class GuiApp:
                                                fill="#ff6b8b", font=(FONT, 13, "bold"))
             self.hearts.append(item)
 
-    def place_bubble(self):
+    def place_bubble(self, compact: bool = False):
         sw = self.root.winfo_screenwidth()
         sh = self.root.winfo_screenheight()
-        w = BUB_W
+        w = 250 if compact else BUB_W
         h = int(getattr(self, "bub_h", 110))
+        if compact:
+            # 头顶窄歌词条：居中贴在宠物上方
+            x = self.x + (PET_W - w) // 2
+            y = self.y - h - 4
+            if y < 6:
+                y = self.y + PET_H + 4
+            x = max(6, min(x, sw - w - 6))
+            y = max(6, min(y, sh - h - 6))
+            self.bubble.geometry(f"{w}x{h}+{int(x)}+{int(y)}")
+            self.bub_tail_right = False
+            self.bub_tail_bottom = True
+            return
         x = self.x + PET_W + 8
         tail_right = False
         if x + w > sw - 6:
@@ -376,29 +394,50 @@ class GuiApp:
         y = max(6, min(self.y - 6, sh - h - 6))
         self.bubble.geometry(f"{w}x{h}+{int(x)}+{int(y)}")
         self.bub_tail_right = tail_right
+        self.bub_tail_bottom = False
 
     def update_bubble(self, s):
         title = s.get("bubble_title", "")
         badge = s.get("badge", "")
         text = s.get("bubble", "")
         nxt = s.get("next", "") if s.get("singing") else ""
-        sig = (title, badge, text, nxt, s.get("tone"))
+        compact = bool(s.get("bubbleCompact"))
+        sig = (title, badge, text, nxt, s.get("tone"), compact)
         if sig != self.last_sig:
             self.last_sig = sig
             if self.user_hidden and self.hidden_sig != sig:
                 self.user_hidden = False
-            self.render_bubble(title, badge, text, nxt, s.get("tone", "coach"))
+            self.render_bubble(title, badge, text, nxt, s.get("tone", "coach"), compact)
         visible = bool(text or title) and s.get("bubbleVisible", True) and not self.user_hidden and not self.pet_hidden
         if visible:
-            self.place_bubble()
+            self.place_bubble(compact)
             self.bubble.deiconify()
             self.bubble.lift()
         else:
             self.bubble.withdraw()
 
-    def render_bubble(self, title, badge, text, nxt, tone="coach"):
+    def render_bubble(self, title, badge, text, nxt, tone="coach", compact=False):
         c = self.bub_canvas
         c.delete("all")
+        accent = {"success": "#34ad75", "error": "#e04750", "music": "#8b61e6",
+                  "thinking": "#597fd8"}.get(tone, "#f7873d")
+        if compact:
+            # 唱歌专用：两行 58px 的胶囊，不挡桌面
+            h = 56
+            w = 250
+            self.bub_h = h
+            c.configure(height=h, width=w)
+            rounded(c, 2, 2, w - 2, h - 12, 13, fill="#fffdfa", outline=accent, width=2)
+            c.create_polygon(w // 2 - 7, h - 12, w // 2, h - 2, w // 2 + 7, h - 12,
+                             fill="#fffdfa", outline=accent, width=2)
+            c.create_oval(12, 12, 34, 34, fill="#f1ebff", outline="")
+            c.create_text(23, 22, text="♪", fill=accent, font=(FONT, 12, "bold"))
+            if title:
+                c.create_text(42, 9, anchor="nw", text=truncate(title, 24),
+                              fill="#7d8290", font=(FONT, 8))
+            c.create_text(42, 24, anchor="nw", text=truncate(text or "♪ 跟着哼", 17),
+                          fill="#20283a", font=(FONT, 11, "bold"))
+            return
         lines = wrap_text(text, 23)
         tlines = wrap_text(title, 22) if title else []
         nlines = wrap_text(nxt, 25) if nxt else []
@@ -489,6 +528,12 @@ class GuiApp:
             self.quit()
             return
         s = self.state()
+        rice = s.get("rice", 0)
+        if self.last_rice is None:
+            self.last_rice = rice
+        elif rice != self.last_rice:
+            self.last_rice = rice
+            self.anim.set_clip("rice", force=True)
         clip = s.get("clip") or "idle"
         if clip != self.last_clip:
             self.last_clip = clip
@@ -537,10 +582,10 @@ class GuiApp:
                               "line": "海风轻轻吹过", "next": "下一句也唱给你听",
                               "index": 0, "total": 2})
         else:
-            self.core.handle({"cmd": "feed"})
             self.core.handle({"cmd": "say", "title": "桌面大肥鱼", "text": "Windows 桌面版冒烟测试。",
                               "anim": "pat", "tone": "coach"})
             self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
+            self.core.handle({"cmd": "feed"})
         for _ in range(12):
             if getattr(self, "stage", None) is not None:
                 self.stage.lift()
@@ -562,6 +607,12 @@ class GuiApp:
 
     def tick_smoke(self):
         s = self.state()
+        rice = s.get("rice", 0)
+        if self.last_rice is None:
+            self.last_rice = rice
+        elif rice != self.last_rice:
+            self.last_rice = rice
+            self.anim.set_clip("rice", force=True)
         clip = s.get("clip") or "idle"
         if clip != self.last_clip:
             self.last_clip = clip

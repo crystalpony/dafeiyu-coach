@@ -118,6 +118,11 @@ def build(source: Path, probe: bool = False) -> None:
         f"({total_bytes/max(total_frames,1)/1024:.1f} KB/frame) -> {OUT}"
     )
 
+    # 米饭/唱歌是本地派生剪辑，跟着素材重建一起生成（不会回退成 eat）
+    from derive_clips import build_rice, build_sing
+    build_rice()
+    build_sing()
+
 
 def main() -> None:
     ap = argparse.ArgumentParser()
