@@ -569,6 +569,7 @@ def cmd_gui(args) -> int:
     argv = []
     if getattr(args, "no_music", False): argv.append("--no-music")
     if getattr(args, "smoke", False): argv.append("--smoke")
+    if getattr(args, "smoke_music", False): argv.append("--smoke-music")
     if getattr(args, "check", False): argv.append("--check")
     return subprocess.call([sys.executable, str(target)] + argv, env=env)
 
@@ -836,6 +837,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("gui", help="Windows/macOS 桌面窗口版（透明置顶、动画、气泡、指针）")
     s.add_argument("--no-music", action="store_true")
     s.add_argument("--smoke", action="store_true")
+    s.add_argument("--smoke-music", action="store_true")
     s.add_argument("--check", action="store_true")
     s.set_defaults(func=cmd_gui)
 

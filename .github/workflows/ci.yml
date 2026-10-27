@@ -33,11 +33,23 @@ jobs:
         run: python bin/dafeiyu_gui.py --check
       - name: GUI smoke
         run: python bin/dafeiyu_gui.py --smoke --no-music
+      - name: GUI music smoke
+        run: python bin/dafeiyu_gui.py --smoke --smoke-music --no-music
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: windows-gui-smoke
-          path: gui-smoke.png
+          path: gui-*.png
+      - name: Windows installer
+        shell: pwsh
+        run: |
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP "appdata"
+          $env:USERPROFILE = Join-Path $env:RUNNER_TEMP "user"
+          $env:DAFEIYU_HOME = Join-Path $env:RUNNER_TEMP "data"
+          New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA, $env:USERPROFILE, $env:DAFEIYU_HOME | Out-Null
+          powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+          & "$env:LOCALAPPDATA\DafeiyuCoach\dafeiyu.cmd" --version
+          & "$env:LOCALAPPDATA\DafeiyuCoach\dafeiyu.cmd" gui --check
       - name: SMTC script parses
         shell: pwsh
         run: |

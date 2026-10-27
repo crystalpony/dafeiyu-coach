@@ -517,7 +517,7 @@ class GuiApp:
         except Exception:
             pass
 
-    def smoke(self):
+    def smoke(self, music: bool = False):
         # CI 桌面有日志窗口；冒烟时铺一层干净的浅色舞台，只保留宠物/气泡/指针。
         try:
             self.stage = tk.Toplevel(self.root)
@@ -531,10 +531,16 @@ class GuiApp:
             self.pointer.lift()
         except Exception:
             self.stage = None
-        self.core.handle({"cmd": "feed"})
-        self.core.handle({"cmd": "say", "title": "桌面大肥鱼", "text": "Windows 桌面版冒烟测试。",
-                          "anim": "pat", "tone": "coach"})
-        self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
+        if music:
+            self.core.handle({"cmd": "music_start", "title": "桌面大肥鱼", "artist": "测试"})
+            self.core.handle({"cmd": "lyric", "title": "桌面大肥鱼", "artist": "测试",
+                              "line": "海风轻轻吹过", "next": "下一句也唱给你听",
+                              "index": 0, "total": 2})
+        else:
+            self.core.handle({"cmd": "feed"})
+            self.core.handle({"cmd": "say", "title": "桌面大肥鱼", "text": "Windows 桌面版冒烟测试。",
+                              "anim": "pat", "tone": "coach"})
+            self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
         for _ in range(12):
             if getattr(self, "stage", None) is not None:
                 self.stage.lift()
@@ -544,13 +550,13 @@ class GuiApp:
             self.root.update()
             self.tick_smoke()
             time.sleep(0.05)
-        out = Path("gui-smoke.png")
+        out = Path("gui-music-smoke.png" if music else "gui-smoke.png")
         try:
             from PIL import ImageGrab
             ImageGrab.grab().save(out)
         except Exception as exc:
             print(f"screenshot failed: {exc}")
-        print(json.dumps({"ok": True, "smoke": True, "w": PET_W, "h": PET_H,
+        print(json.dumps({"ok": True, "smoke": True, "music": music, "w": PET_W, "h": PET_H,
                           "core": self.core.snapshot().get("clip")}, ensure_ascii=False))
         self.quit()
 
@@ -574,6 +580,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="dafeiyu gui", description="桌面大肥鱼 · 桌面窗口版")
     ap.add_argument("--no-music", action="store_true")
     ap.add_argument("--smoke", action="store_true", help="创建窗口、渲染几帧、截图后退出（CI）")
+    ap.add_argument("--smoke-music", action="store_true", help="冒烟：歌词+唱歌状态")
     ap.add_argument("--check", action="store_true", help="只检查依赖/素材")
     args = ap.parse_args(argv)
     if GUI_ERR is not None:
@@ -589,9 +596,9 @@ def main(argv=None) -> int:
         print(json.dumps({"ok": True, "platform": sys.platform, "assets": str(assets),
                           "tk": tk.TkVersion, "pillow": Image.__version__}, ensure_ascii=False))
         return 0
-    app = GuiApp(assets, no_music=args.no_music, smoke=args.smoke)
-    if args.smoke:
-        app.smoke()
+    app = GuiApp(assets, no_music=args.no_music, smoke=args.smoke or args.smoke_music)
+    if args.smoke or args.smoke_music:
+        app.smoke(music=args.smoke_music)
         return 0
     app.root.mainloop()
     return 0
