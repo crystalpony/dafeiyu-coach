@@ -103,9 +103,9 @@
 
 ### 8. QQ 音乐真机
 
-![QQ 音乐真机唱歌](../audit/screenshots/08-qq-music.png)
+![QQ 音乐真机识别](../audit/screenshots/08-qq-music.png)
 
-- 网易云/QQ 音乐/Apple Music 都通过系统 Now Playing；QQ 音乐元数据已真机确认。
+- 网易云/QQ 音乐/Apple Music 都通过系统 Now Playing；QQ 音乐元数据已真机确认（截图保留的是旧版大气泡，当前版本已改为头顶紧凑条）。
 - 该曲无 LRCLIB 歌词时立即显示歌名/歌手并“跟着哼”，不阻塞切歌/暂停。
 
 ### 9. 终端轻量版

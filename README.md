@@ -16,7 +16,7 @@
 
 ![Windows 歌词唱歌（CI 冒烟）](audit/screenshots/07-windows-music.png)
 
-![QQ 音乐真机唱歌](audit/screenshots/08-qq-music.png)
+![QQ 音乐真机识别](audit/screenshots/08-qq-music.png)
 
 ## 能做什么
 
