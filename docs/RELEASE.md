@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | macOS | `dafeiyu-coach-1.1.0-macos.zip` | `Dafeiyu Coach.app`（universal，含 15 段动画/音乐适配器/skills）+ CLI |
 | Windows | `dafeiyu-coach-1.1.0-windows.zip` | 桌面窗口版 `dafeiyu gui` + 终端版 `dafeiyu tui` + `install.ps1` + SMTC/clips |
-| 校验 | `SHA256SUMS` | 见 `dist/SHA256SUMS`；当前 8.6 MB / 7.7 MB |
+| 校验 | `SHA256SUMS` | Release 资产内；当前 8.6 MB / 7.7 MB |
 
 ## macOS
 
