@@ -1,8 +1,15 @@
 # 桌面大肥鱼 Coach 1.1.0
 
+[![CI](https://github.com/crystalpony/dafeiyu-coach/actions/workflows/ci.yml/badge.svg)](https://github.com/crystalpony/dafeiyu-coach/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/crystalpony/dafeiyu-coach)](https://github.com/crystalpony/dafeiyu-coach/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![macOS 13+ · Windows 10+](https://img.shields.io/badge/platform-macOS%2013%2B%20%7C%20Windows%2010%2B-5b6ee1)](https://github.com/crystalpony/dafeiyu-coach/releases/latest)
+
 > 一只住在 macOS 桌面上的大肥鱼。Agent 在对话里调用她，她就在屏幕上用**指针圈、语言气泡和 15 段动画**，一步一步带用户把事情做完；放歌时会跟着歌词轻轻唱；没有任务时，她安静地陪着。
 >
 > **平台**：macOS 原生桌宠（Swift/AppKit）· Windows 桌面窗口版（Tk + Pillow，透明置顶、动画/气泡/指针）· Windows/macOS/Linux 终端轻量版（Python TUI）· 同一套 skills / CLI / MCP。
+
+**下载**：[macOS .app](https://github.com/crystalpony/dafeiyu-coach/releases/latest/download/dafeiyu-coach-1.1.0-macos.zip) · [Windows 桌面窗口版/终端版](https://github.com/crystalpony/dafeiyu-coach/releases/latest/download/dafeiyu-coach-1.1.0-windows.zip) · [SHA256](https://github.com/crystalpony/dafeiyu-coach/releases/latest/download/SHA256SUMS)
 
 这是 `Desktop/qoder-coach/Coach.swift` 的**独立版**：不再绑定某个固定教程的状态文件，而是通过 **skills / CLI / MCP** 被 Qoder、Codex、Claude Code、dsh 等 Agent 调用。原来的 `Coach.swift`、`state.json` 不动。
 
@@ -54,7 +61,7 @@ dafeiyu music offset 0.4         # 歌词整体偏移
 dafeiyu music provider lrclib    # 只使用 LRCLIB，不用网易云兜底
 ```
 
-> 唱歌是**视觉卡拉 OK**：歌词气泡 + 摇摆 + 音符；不会播放 TTS/音频，避免盖住你的音乐。
+> 唱歌是**视觉卡拉 OK**：独立唱歌动画 + 头顶紧凑歌词条 + 音符；不会播放 TTS/音频，避免盖住你的音乐。
 
 ## 安装
 
@@ -69,7 +76,7 @@ scripts/install.sh --with-mcp # 额外写 Qoder/Claude/Codex 的 MCP 配置（�
 scripts/install.sh --no-music # 只装桌宠，不启动音乐监听
 ```
 
-### Windows 终端版
+### Windows 桌面窗口版 / 终端版
 
 要求：Windows 10 1803+、Python 3.9+、PowerShell 5.1+。不需要编译，不需要 AppKit。
 
