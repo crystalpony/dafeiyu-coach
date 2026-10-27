@@ -98,6 +98,8 @@
 - 修：Windows PowerShell 5.1 读取无 BOM 的 UTF-8 脚本导致中文引号解析失败 → `install.ps1`/`media_smtc.ps1` 改为 UTF-8 BOM。
 - 修：实例属性 `self.smoke` 覆盖方法导致 `TypeError`；默认位置在小屏越界；气泡 accent 未按 tone 着色。
 
+**追加验收（QQ 真机）**：QQ 音乐播放被系统识别为 `com.tencent.QQMusicMac`，歌名/歌手立即显示；发现 LRCLIB 网络慢会阻塞切歌，已改为“先推歌名，歌词后台 fetch”，暂停/切歌不再被网络卡住。该曲无歌词时“跟着哼”，不伪造。
+
 **验收边界**：Windows 窗口版是 Tk/Pillow，视觉与 macOS AppKit 不等同；CI 冒烟≠真实 Windows 人工验收。若要求原生 WinUI/Tauri 级体验，需要下一轮重写。
 
 ## 刻意没做的事（避免“假完成”）

@@ -26,6 +26,7 @@ import ssl
 import subprocess
 import sys
 import time
+import threading
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -469,6 +470,8 @@ def watch(interval: float = 1.0, no_network: bool = False, dry_run: bool = False
     lyrics = {"lines": [], "synced": False}
     last_send = 0.0
     started = time.time()
+    fetch_lock = threading.Lock()
+    pending = {"key": None, "result": None}
     while True:
         if limit and time.time() - started > limit:
             return 0
@@ -489,13 +492,33 @@ def watch(interval: float = 1.0, no_network: bool = False, dry_run: bool = False
         if key != last_track_key:
             last_track_key = key
             last_line = None
-            lyrics = fetch_lyrics(track, no_network=no_network)
+            lyrics = load_cached(track) or {"lines": [], "synced": False}
+            with fetch_lock:
+                pending = {"key": key, "result": None}
+            # 先把歌名/歌手推给桌宠，网络取词不阻塞切歌和暂停
             if not dry_run:
                 send_daemon({"cmd": "music_start", "title": track.get("title", ""),
                              "artist": track.get("artist", ""), "album": track.get("album", ""),
                              "app": track.get("app", ""), "duration": track.get("duration", 0)})
-            print(f"♪ {track.get('title')} - {track.get('artist')}  ({len(lyrics.get('lines') or [])} lines)")
+            if not lyrics.get("lines"):
+                def worker(k=key, tr=dict(track)):
+                    try:
+                        res = fetch_lyrics(tr, no_network=no_network)
+                    except Exception as exc:  # noqa: BLE001
+                        log(f"lyrics worker: {exc}")
+                        res = {"lines": [], "synced": False}
+                    with fetch_lock:
+                        if pending.get("key") == k:
+                            pending["result"] = res
+                threading.Thread(target=worker, daemon=True).start()
+            print(f"♪ {track.get('title')} - {track.get('artist')}  ({len(lyrics.get('lines') or [])} cached lines)")
             last_playing = True
+        with fetch_lock:
+            if pending.get("key") == last_track_key and pending.get("result") is not None:
+                lyrics = pending["result"]
+                pending["result"] = None
+                last_line = None
+                print(f"  lyrics ready: {len(lyrics.get('lines') or [])} lines")
         lines = lyrics.get("lines") or []
         elapsed = float(track.get("elapsed") or 0) + offset
         idx = line_at(lines, elapsed)

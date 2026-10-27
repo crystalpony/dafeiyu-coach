@@ -722,6 +722,8 @@ def check_visual() -> None:
            str(SHOTS / "06-windows-gui.png"), "visual")
     record("证据 08：Windows GUI 歌词唱歌（CI）", (SHOTS / "07-windows-music.png").exists(),
            str(SHOTS / "07-windows-music.png"), "visual")
+    record("证据 09：QQ 音乐真机唱歌", (SHOTS / "08-qq-music.png").exists(),
+           str(SHOTS / "08-qq-music.png"), "visual")
 
     for f in ["01-guide.png", "02-success.png", "03-companion.png", "04-music.png", "05-rice.png"]:
         p = SHOTS / f

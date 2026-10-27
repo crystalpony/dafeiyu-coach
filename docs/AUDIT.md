@@ -6,7 +6,7 @@
 
 ## 结论
 
-**128/128 通过。**
+**129/129 通过。**
 
 | 分组 | 通过 |
 | --- | --- |
@@ -22,9 +22,9 @@
 | 性能 | 6/6 |
 | 隐私 | 4/4 |
 | 文档 | 16/16 |
-| 可视化 | 13/13 |
+| 可视化 | 14/14 |
 | 卸载 | 3/3 |
-| **总计** | **128/128** |
+| **总计** | **129/129** |
 
 机器可读结果：`audit/last-report.json`；三轮迭代见 [ITERATIONS](ITERATIONS.md)。
 
@@ -45,7 +45,7 @@
 | GitHub 复用并优化 | MIT 动画素材；BSD MediaRemote；LRCLIB；SMTC 原创 | `NOTICE`；`Runtime/music` |
 | 趣味玩法 | 摸头/戳/尾巴/拖拽/双击/米饭/跳舞/游到鼠标/应用反应 | e2e、截图 |
 | Windows + macOS | macOS 原生 GUI；Windows 桌面窗口版（Tk/Pillow）+ 终端版；SMTC | Windows CI GUI smoke；`tui` 组 |
-| 通过所有审计 | 本文件 + 机器可读报告 | 128/128 |
+| 通过所有审计 | 本文件 + 机器可读报告 | 129/129 |
 
 ## 关键数据
 
@@ -101,7 +101,14 @@
 - 同一 Windows CI 桌面上推送 `music_start/lyric`，显示歌名/当前句/下一句、音符和紫色歌词气泡。
 - 真实 SMTC 读歌未在 CI 播放；Windows 网易云/QQ 音乐需真实机器验证。
 
-### 8. 终端轻量版
+### 8. QQ 音乐真机
+
+![QQ 音乐真机唱歌](../audit/screenshots/08-qq-music.png)
+
+- 网易云/QQ 音乐/Apple Music 都通过系统 Now Playing；QQ 音乐元数据已真机确认。
+- 该曲无 LRCLIB 歌词时立即显示歌名/歌手并“跟着哼”，不阻塞切歌/暂停。
+
+### 9. 终端轻量版
 
 ```text
    /\ 
@@ -121,7 +128,7 @@
   米饭 1 碗 · [f]添饭 [p]摸摸 [space]下一步 [q]退出
 ```
 
-## 自动化检查覆盖（128 项）
+## 自动化检查覆盖（129 项）
 
 1. **构建与静态（9）**：`swiftc -warnings-as-errors`、构建产物、Python/Shell 语法、内置自测（含会议 App 判断）、素材清单、单文件行数、manifest 许可。
 2. **体积（5）**：二进制 / 素材 / 音乐适配器 / 运行体 / 源码。
@@ -135,13 +142,13 @@
 10. **性能（6）**：启动、待机 CPU/RSS、动画+指针 CPU/RSS、记录。
 11. **隐私（4）**：无网络/读屏/合成点击 API（原生）、只监听本机、歌词只访问 LRCLIB、无 TODO。
 12. **文档（16）**：README、LICENSE、NOTICE、CHANGELOG、ARCHITECTURE、AUDIT、ITERATIONS、SOCIAL、CI、music README、Windows 安装、AGENTS、dsh、素材署名。
-13. **可视化（13）**：5 张 macOS 截图 + 终端渲染 + Windows GUI/歌词 CI 截图 + 非空检查。
+13. **可视化（14）**：5 张 macOS 截图 + 终端渲染 + Windows GUI/歌词 CI 截图 + QQ 真机截图 + 非空检查。
 14. **卸载（3）**：移除二进制/skills/music/tui、保留设置、`--purge`。
 
 ## 已知限制
 
 - **Windows 桌面版是 Tk/Pillow 实现**，不是原生 WinUI；CI 跑窗口冒烟并上传截图，但尚未在真实 Windows 桌面上人工核对透明/点击穿透/字体。Windows 的 SMTC 也仅做脚本解析与 TUI 核心 CI，未在真实 Windows 上播放网易云/QQ 音乐验收。
-- **QQ 音乐**未实际播放（本机未登录/无曲目）；适配器走系统 Now Playing，和网易云/Apple Music 同一条通道；QQ 音乐用户需自行播放验证。
+- **QQ 音乐**已真机验证元数据（`com.tencent.QQMusicMac` / Avril Lavigne），但该曲 LRCLIB 无可用歌词，显示“跟着哼”；歌词覆盖仍取决于 LRCLIB/本地 LRC。
 - **单屏实测**：多屏逻辑已实现，但没有第二块屏证据。
 - **交互点击未自动化**：审计不申请辅助功能，不合成鼠标事件；摸头/戳/尾巴/拖拽/双击/关闭按钮/菜单为代码路径 + 手工验收项。
 - **全屏 Space 未专门验收**：窗口使用 `.canJoinAllSpaces + .stationary + .fullScreenAuxiliary`。

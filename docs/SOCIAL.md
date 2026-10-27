@@ -34,6 +34,7 @@ README 首屏：
 4. `docs/social/xhs-04.png` — 添米饭
 5. `docs/social/xhs-05.png` — Windows 桌面窗口版
 6. `docs/social/xhs-06.png` — Windows 歌词唱歌
+7. 可替换：`audit/screenshots/08-qq-music.png` — QQ 音乐真机
 
 抖音竖屏：`docs/social/dafeiyu-demo-9x16.mp4`（15s，6 段图文，无音轨，上传后加平台音乐）。
 
