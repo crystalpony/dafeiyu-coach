@@ -12,6 +12,9 @@ install:
 audit:
 	python3 audit/audit.py
 
+release:
+	./scripts/package.sh
+
 demo:
 	./bin/dafeiyu demo
 
