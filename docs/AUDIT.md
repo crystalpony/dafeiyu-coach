@@ -91,7 +91,7 @@
 
 ![Windows 桌面窗口版](../audit/screenshots/06-windows-gui.png)
 
-- 真实 Windows Server 2025 CI 桌面：宠物窗口（二值 alpha 抠图）、气泡、指针圈/标签、虚线。
+- 真实 Windows Server 2025 CI 桌面：宠物窗口（二值 alpha 抠图）、独立 rice 动画、米饭气泡、指针圈/标签、虚线。
 - 冒烟只覆盖渲染与启动；Windows 安装器（含 Pillow/clips）已在 CI 通过；真实 Windows 机器上的拖拽/点击穿透/字体仍需人工复核。
 
 ### 7. Windows 歌词唱歌（CI 冒烟）

@@ -76,7 +76,7 @@ xattr -cr "$APP" 2>/dev/null || true
 xattr -r -d com.apple.FinderInfo "$APP" 2>/dev/null || true
 codesign --force --deep --sign - "$APP"
 codesign --verify --deep --strict "$APP"
-(cd "$WORK" && ditto -c -k --keepParent "$APP" "$DIST/dafeiyu-coach-$VERSION-macos.zip")
+(cd "$WORK" && ditto -c -k --keepParent --norsrc --noextattr "$APP" "$DIST/dafeiyu-coach-$VERSION-macos.zip")
 rm -rf "$WORK"
 
 # Windows：源码 + 素材 + 安装器（不捆绑 Python；安装器检查/安装 Pillow）
