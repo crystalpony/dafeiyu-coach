@@ -521,6 +521,7 @@ class GuiApp:
         self.core.handle({"cmd": "feed"})
         self.core.handle({"cmd": "say", "title": "桌面大肥鱼", "text": "Windows 桌面版冒烟测试。",
                           "anim": "pat", "tone": "coach"})
+        self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
         for _ in range(12):
             self.root.update()
             self.tick_smoke()
