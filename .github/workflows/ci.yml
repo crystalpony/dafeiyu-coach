@@ -41,10 +41,20 @@ jobs:
         run: python -m pip install Pillow
       - name: GUI check
         run: python bin/dafeiyu_gui.py --check
-      - name: GUI smoke
-        run: python bin/dafeiyu_gui.py --smoke --no-music
-      - name: GUI music smoke
-        run: python bin/dafeiyu_gui.py --smoke --smoke-music --no-music
+      - name: GUI smoke (rice)
+        shell: pwsh
+        run: |
+          $out = python bin/dafeiyu_gui.py --smoke --no-music 2>&1
+          $out | Out-Host
+          if ($out -notmatch '"core": "rice"') { throw "GUI smoke did not end on the rice clip" }
+          if (!(Test-Path gui-smoke.png)) { throw "missing gui-smoke.png" }
+      - name: GUI music smoke (sing + compact lyric)
+        shell: pwsh
+        run: |
+          $out = python bin/dafeiyu_gui.py --smoke --smoke-music --no-music 2>&1
+          $out | Out-Host
+          if ($out -notmatch '"core": "sing"') { throw "GUI music smoke did not use the sing clip" }
+          if (!(Test-Path gui-music-smoke.png)) { throw "missing gui-music-smoke.png" }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
