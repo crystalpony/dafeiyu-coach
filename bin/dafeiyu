@@ -539,6 +539,10 @@ def cmd_move(args) -> int:
     return emit(call({"cmd": "move", "x": x, "y": y}), args.json)
 
 
+def cmd_stage(args) -> int:
+    return emit(call({"cmd": "stage", "on": args.value == "on"}), args.json)
+
+
 def cmd_tui(args) -> int:
     target = script_dir() / "dafeiyu_tui.py"
     if not target.exists():
@@ -785,6 +789,10 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("scale", help="设置桌宠大小 0.7~1.6")
     s.add_argument("value", type=float)
     s.set_defaults(func=cmd_scale)
+
+    s = sub.add_parser("stage", help="演示舞台：盖住其它应用，便于截图/录屏")
+    s.add_argument("value", choices=["on", "off"], nargs="?", default="on")
+    s.set_defaults(func=cmd_stage)
 
     s = sub.add_parser("tui", help="打开跨平台终端轻量版（ASCII 宠物 + 歌词 + 米饭）")
     s.add_argument("--once", action="store_true")

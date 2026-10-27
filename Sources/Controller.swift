@@ -24,6 +24,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var statusItem: NSStatusItem!
     var statusMenu: NSMenu!
     var server: CoachServer?
+    var stageWindow: NSWindow?
 
     // 气泡状态
     var bubbleContent = false
@@ -966,6 +967,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
             player.play(clip, loop: ["idle", "thinking", "working"].contains(clip), autoIdle: true)
             return ["ok": true, "mood": mood, "clip": clip]
+
+        case "stage":
+            if bool(cmd["on"], default: true) { showStage() } else { hideStage() }
+            return ["ok": true, "stage": stageWindow != nil]
 
         case "hide":
             hidePetByUser()

@@ -664,6 +664,7 @@ def check_visual() -> None:
         coach("start", timeout=20)
         st = status()
     scale = st.get("mainScale") or 2
+    coach_json("stage", "on")
     coach_json("move", "--x", "1000", "--y", "650")
     coach_json("hello", "--agent", "audit")
     coach_json("guide", "--title", "真机验收 · 三步任务", "--step", "第一步：看这个圈。", "--step", "第二步：继续。", "--step", "第三步：完成。")
@@ -712,6 +713,7 @@ def check_visual() -> None:
     for f in ["01-guide.png", "02-success.png", "03-companion.png", "04-music.png", "05-rice.png"]:
         p = SHOTS / f
         record(f"截图非空 {f}", p.exists() and p.stat().st_size > 20000, f"{p.stat().st_size//1024 if p.exists() else 0} KB", "visual")
+    coach_json("stage", "off")
 
 
 def check_cleanup() -> None:

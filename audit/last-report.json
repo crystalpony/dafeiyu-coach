@@ -64,13 +64,13 @@
     {
       "name": "swiftc -warnings-as-errors 编译",
       "ok": true,
-      "detail": "9 个源文件",
+      "detail": "10 个源文件",
       "group": "static"
     },
     {
       "name": "构建产物存在",
       "ok": true,
-      "detail": "1102 KB",
+      "detail": "1103 KB",
       "group": "static"
     },
     {
@@ -100,7 +100,7 @@
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1091 行",
+      "detail": "Controller.swift 1096 行",
       "group": "static"
     },
     {
@@ -112,7 +112,7 @@
     {
       "name": "二进制 < 2 MB",
       "ok": true,
-      "detail": "1102 KB",
+      "detail": "1103 KB",
       "group": "size"
     },
     {
@@ -136,7 +136,7 @@
     {
       "name": "源码 < 200 KB",
       "ok": true,
-      "detail": "117 KB",
+      "detail": "120 KB",
       "group": "size"
     },
     {
@@ -148,7 +148,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-zvbbxdrq/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-jxfz6661/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -196,25 +196,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5098 字符",
+      "detail": "5131 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5098 字符",
+      "detail": "5131 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5098 字符",
+      "detail": "5131 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5098 字符",
+      "detail": "5131 字符",
       "group": "install"
     },
     {
@@ -268,7 +268,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 68259",
+      "detail": "pid 74189",
       "group": "e2e"
     },
     {
@@ -418,13 +418,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 68320",
+      "detail": "旧 pid 74259",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '44B619A9-3E78-40D3-B2F7-2BB86CA573FA', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '714A34CB-2A38-4FDD-AEB2-FAB39700EC92', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -478,13 +478,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.18123880290659145",
+      "detail": "blend=0.21752291650045663",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 54848, \"token\": \"21d902742a7133601714c04103ca7341\", \"pid\": 68421}",
+      "detail": "{\"port\": 57317, \"token\": \"d704ac6ade0c00fe7a26559c42cb3407\", \"pid\": 74337}",
       "group": "tui"
     },
     {
@@ -580,31 +580,31 @@
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.5%",
+      "detail": "3.4%",
       "group": "perf"
     },
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "70 MB",
+      "detail": "71 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "6.9%",
+      "detail": "5.9%",
       "group": "perf"
     },
     {
       "name": "动画+指针 RSS < 160 MB",
       "ok": true,
-      "detail": "83 MB",
+      "detail": "80 MB",
       "group": "perf"
     },
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.5% / 70MB · active 6.9% / 83MB",
+      "detail": "idle 3.4% / 71MB · active 5.9% / 80MB",
       "group": "perf"
     },
     {
@@ -634,7 +634,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "10147 字符",
+      "detail": "10342 字符",
       "group": "docs"
     },
     {
@@ -754,31 +754,31 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "544 KB",
+      "detail": "306 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "497 KB",
+      "detail": "361 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "487 KB",
+      "detail": "286 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "487 KB",
+      "detail": "298 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "488 KB",
+      "detail": "298 KB",
       "group": "visual"
     },
     {
@@ -800,5 +800,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T20:36:33"
+  "at": "2026-10-27T20:51:47"
 }

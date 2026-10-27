@@ -57,6 +57,7 @@ extension AppController {
             "rice": settings.riceCount ?? 0,
             "focusRemaining": focusUntil.map { max(0, Int($0.timeIntervalSinceNow)) } ?? 0,
             "quietRemaining": quietUntil.map { max(0, Int($0.timeIntervalSinceNow)) } ?? 0,
+            "stage": stageWindow != nil,
             "pointer": pointerGlobal != nil,
             "clip": player.currentName,
             "frame": player.frameIndex,

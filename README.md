@@ -22,7 +22,7 @@
 - **趣味互动**：摸头、戳身体、碰尾巴、拖拽、双击转圈、**添一碗米饭**、番茄钟专注、游到鼠标边、感知应用切换。
 - **终端轻量版**：`dafeiyu tui`，ASCII 鱼 + 歌词 + 步骤 + 米饭，Windows/macOS 共用同一核心；不依赖 AppKit。
 - **小体积**：单二进制 1.1 MB（universal）；13 组 / 820 帧动画共 6.90 MB；音乐适配器 196 KB；运行体总计约 8.2 MB。
-- **低占用**：待机 CPU 约 3.5%、RSS 约 70 MB；动画 + 指针约 6.9%、83 MB；冷启动 0.30 s（本机实测，见 [审计](docs/AUDIT.md)）。
+- **低占用**：待机 CPU 约 4.7%、RSS 约 71 MB；动画 + 指针约 7.2%、81 MB；冷启动 0.30 s（本机实测，见 [审计](docs/AUDIT.md)）。
 - **好适配**：Qoder / Claude Code / Codex / dsh 四套 skill，三套 `/dafeiyu` 斜杠命令，一个 stdio MCP，外加通用 `AGENTS.md` 片段。
 
 ## 音乐与唱歌
@@ -100,6 +100,7 @@ dafeiyu doctor                  # 自检（进程/素材/音乐/终端版/skills
 dafeiyu hello --agent qoder     # 打招呼
 dafeiyu demo                    # 三步演示（指针 + 气泡 + 撒花）
 dafeiyu tui                     # 终端轻量版（可同时作为 macOS 原生版的显示器）
+dafeiyu stage on                # 演示舞台：盖住其它应用，方便截图/录屏（off 恢复）
 ```
 
 ## 在 Agent 里怎么用
@@ -174,6 +175,7 @@ Codex 的 TOML、Qoder/Claude 的 JSON 片段在 [`adapters/mcp/`](adapters/mcp/
 | `dafeiyu focus --minutes 25` / `--cancel` | 番茄钟 |
 | `dafeiyu quiet on --minutes 60` | 会议模式（到点自动解除） |
 | `dafeiyu tui` | 终端轻量版（Windows/macOS） |
+| `dafeiyu stage on\|off` | 演示舞台：盖住其它应用，截屏/录屏用 |
 | `dafeiyu hide` / `show` / `quiet on\|off` / `scale 1.2` | 显隐 / 安静 / 大小 |
 | `dafeiyu status [--json]` / `info` / `doctor` | 状态 / 屏幕 / 自检 |
 | `dafeiyu start` / `stop` | 启动 / 退出守护进程 |
@@ -243,8 +245,8 @@ dafeiyu-daemon (Swift + AppKit, universal 单二进制)
 | 音乐适配器 | 196 KB（MediaRemote framework + Perl 脚本） |
 | 安装后运行体 | ≈ 8.2 MB |
 | 冷启动 | 0.30 s |
-| 待机 CPU / RSS | 3.5% / 70 MB |
-| 动画 + 指针 CPU / RSS | 6.9% / 83 MB |
+| 待机 CPU / RSS | 4.7% / 71 MB |
+| 动画 + 指针 CPU / RSS | 7.2% / 81 MB |
 
 优化手段：24 Hz 主时钟 + 12 fps 动画、仅在换帧时重绘、窗口被遮挡/隐藏时暂停、LRU 帧缓存、指针层仅在激活时置顶、待机操作限频、10 分钟无交互后睡觉。
 

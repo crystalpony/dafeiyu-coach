@@ -656,6 +656,31 @@ final class RestoreView: NSView {
     override func mouseDown(with event: NSEvent) { onClick?() }
 }
 
+// MARK: - 演示舞台（盖住其它应用，抬高桌宠层，供截图/录屏）
+final class StageView: NSView {
+    override var isFlipped: Bool { true }
+    override func draw(_ dirtyRect: NSRect) {
+        let w = bounds.width, h = bounds.height
+        let grad = NSGradient(starting: NSColor(calibratedRed: 0.985, green: 0.965, blue: 0.930, alpha: 1),
+                              ending: NSColor(calibratedRed: 0.905, green: 0.940, blue: 0.985, alpha: 1))!
+        grad.draw(in: bounds, angle: -55)
+        for (i, c) in [NSColor(calibratedRed: 0.98, green: 0.62, blue: 0.32, alpha: 0.10),
+                       NSColor(calibratedRed: 0.36, green: 0.50, blue: 0.92, alpha: 0.09)].enumerated() {
+            let r = min(w, h) * (i == 0 ? 0.42 : 0.52)
+            let cx = i == 0 ? w * 0.82 : w * 0.16
+            let cy = i == 0 ? h * 0.22 : h * 0.80
+            c.setFill()
+            NSBezierPath(ovalIn: NSRect(x: cx - r / 2, y: cy - r / 2, width: r, height: r)).fill()
+        }
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 12, weight: .medium),
+            .foregroundColor: NSColor(calibratedWhite: 0.25, alpha: 0.28)
+        ]
+        NSAttributedString(string: "桌面大肥鱼 Coach", attributes: attrs)
+            .draw(at: NSPoint(x: 26, y: h - 34))
+    }
+}
+
 // MARK: - 指针层（每块屏一个，鼠标穿透）
 
 final class PointerView: NSView {
