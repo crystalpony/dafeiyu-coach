@@ -94,7 +94,8 @@
 - 复用终端版 `Core/Server`：Windows GUI 自己当核心（本机 TCP + token），CLI/MCP/skills 仍可控制；不与 TUI 重复实现状态机。
 - Windows 透明色抠图 + Win32 `WS_EX_TRANSPARENT/LAYERED/NOACTIVATE` 点击穿透；`pythonw` 启动无控制台。
 - `dafeiyu gui` / `dafeiyu-gui.cmd`；`install.ps1` 复制 clips、安装 Pillow。
-- GUI 冒烟：macOS `--check/--smoke`；GitHub Actions Windows 运行 `--smoke` 并上传 `gui-smoke.png`。
+- GUI 冒烟：macOS `--check/--smoke`；GitHub Actions Windows 跑 `--smoke`（指针）与 `--smoke-music`（歌词/音符）并上传截图；`install.ps1` 也在 Windows CI 真跑。
+- 修：Windows PowerShell 5.1 读取无 BOM 的 UTF-8 脚本导致中文引号解析失败 → `install.ps1`/`media_smtc.ps1` 改为 UTF-8 BOM。
 - 修：实例属性 `self.smoke` 覆盖方法导致 `TypeError`；默认位置在小屏越界；气泡 accent 未按 tone 着色。
 
 **验收边界**：Windows 窗口版是 Tk/Pillow，视觉与 macOS AppKit 不等同；CI 冒烟≠真实 Windows 人工验收。若要求原生 WinUI/Tauri 级体验，需要下一轮重写。

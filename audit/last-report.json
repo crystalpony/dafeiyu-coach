@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "passed": 127,
-  "total": 127,
+  "passed": 128,
+  "total": 128,
   "groups": {
     "static": [
       9,
@@ -52,8 +52,8 @@
       16
     ],
     "visual": [
-      12,
-      12
+      13,
+      13
     ],
     "cleanup": [
       3,
@@ -154,7 +154,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-qnk8vgbe/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-nmjmgw_j/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -274,7 +274,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 82913",
+      "detail": "pid 85351",
       "group": "e2e"
     },
     {
@@ -406,7 +406,7 @@
     {
       "name": "帧动画运行",
       "ok": true,
-      "detail": "frame 0 → 7",
+      "detail": "frame 0 → 6",
       "group": "e2e"
     },
     {
@@ -424,13 +424,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 82980",
+      "detail": "旧 pid 85478",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '50E0DFA1-358B-459A-B1C3-6FFBDA6C14C2', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'AAF2A367-8130-441A-BECF-99BBE5887BA8', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -484,13 +484,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.24249505222542211",
+      "detail": "blend=0.1701536457403563",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 60669, \"token\": \"3fa635485c7b2a61c351a91bf7efed12\", \"pid\": 83038}",
+      "detail": "{\"port\": 61886, \"token\": \"8cac97aa00676c4fec09fe745371a633\", \"pid\": 85647}",
       "group": "tui"
     },
     {
@@ -580,13 +580,13 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.18s",
+      "detail": "0.30s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "4.8%",
+      "detail": "3.4%",
       "group": "perf"
     },
     {
@@ -598,7 +598,7 @@
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "7.9%",
+      "detail": "5.6%",
       "group": "perf"
     },
     {
@@ -610,7 +610,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 4.8% / 70MB · active 7.9% / 80MB",
+      "detail": "idle 3.4% / 70MB · active 5.6% / 80MB",
       "group": "perf"
     },
     {
@@ -640,7 +640,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "10931 字符",
+      "detail": "10995 字符",
       "group": "docs"
     },
     {
@@ -776,33 +776,39 @@
       "group": "visual"
     },
     {
-      "name": "截图非空 01-guide.png",
+      "name": "证据 08：Windows GUI 歌词唱歌（CI）",
       "ok": true,
-      "detail": "301 KB",
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/07-windows-music.png",
       "group": "visual"
     },
     {
-      "name": "截图非空 02-success.png",
+      "name": "截图非空 01-guide.png",
       "ok": true,
       "detail": "300 KB",
       "group": "visual"
     },
     {
+      "name": "截图非空 02-success.png",
+      "ok": true,
+      "detail": "298 KB",
+      "group": "visual"
+    },
+    {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "278 KB",
+      "detail": "277 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "285 KB",
+      "detail": "284 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "280 KB",
+      "detail": "279 KB",
       "group": "visual"
     },
     {
@@ -824,5 +830,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T21:13:24"
+  "at": "2026-10-27T21:21:02"
 }
