@@ -6,7 +6,7 @@
 
 ## 结论
 
-**127/127 通过。**
+**128/128 通过。**
 
 | 分组 | 通过 |
 | --- | --- |
@@ -22,9 +22,9 @@
 | 性能 | 6/6 |
 | 隐私 | 4/4 |
 | 文档 | 16/16 |
-| 可视化 | 12/12 |
+| 可视化 | 13/13 |
 | 卸载 | 3/3 |
-| **总计** | **127/127** |
+| **总计** | **128/128** |
 
 机器可读结果：`audit/last-report.json`；三轮迭代见 [ITERATIONS](ITERATIONS.md)。
 
@@ -45,7 +45,7 @@
 | GitHub 复用并优化 | MIT 动画素材；BSD MediaRemote；LRCLIB；SMTC 原创 | `NOTICE`；`Runtime/music` |
 | 趣味玩法 | 摸头/戳/尾巴/拖拽/双击/米饭/跳舞/游到鼠标/应用反应 | e2e、截图 |
 | Windows + macOS | macOS 原生 GUI；Windows 桌面窗口版（Tk/Pillow）+ 终端版；SMTC | Windows CI GUI smoke；`tui` 组 |
-| 通过所有审计 | 本文件 + 机器可读报告 | 127/127 |
+| 通过所有审计 | 本文件 + 机器可读报告 | 128/128 |
 
 ## 关键数据
 
@@ -92,9 +92,16 @@
 ![Windows 桌面窗口版](../audit/screenshots/06-windows-gui.png)
 
 - 真实 Windows Server 2025 CI 桌面：宠物窗口（二值 alpha 抠图）、气泡、指针圈/标签、虚线。
-- 冒烟只覆盖渲染与启动；真实 Windows 机器上的拖拽/点击穿透/字体仍需人工复核。
+- 冒烟只覆盖渲染与启动；Windows 安装器（含 Pillow/clips）已在 CI 通过；真实 Windows 机器上的拖拽/点击穿透/字体仍需人工复核。
 
-### 7. 终端轻量版
+### 7. Windows 歌词唱歌（CI 冒烟）
+
+![Windows 歌词唱歌](../audit/screenshots/07-windows-music.png)
+
+- 同一 Windows CI 桌面上推送 `music_start/lyric`，显示歌名/当前句/下一句、音符和紫色歌词气泡。
+- 真实 SMTC 读歌未在 CI 播放；Windows 网易云/QQ 音乐需真实机器验证。
+
+### 8. 终端轻量版
 
 ```text
    /\ 
@@ -114,7 +121,7 @@
   米饭 1 碗 · [f]添饭 [p]摸摸 [space]下一步 [q]退出
 ```
 
-## 自动化检查覆盖（127 项）
+## 自动化检查覆盖（128 项）
 
 1. **构建与静态（9）**：`swiftc -warnings-as-errors`、构建产物、Python/Shell 语法、内置自测（含会议 App 判断）、素材清单、单文件行数、manifest 许可。
 2. **体积（5）**：二进制 / 素材 / 音乐适配器 / 运行体 / 源码。
@@ -128,7 +135,7 @@
 10. **性能（6）**：启动、待机 CPU/RSS、动画+指针 CPU/RSS、记录。
 11. **隐私（4）**：无网络/读屏/合成点击 API（原生）、只监听本机、歌词只访问 LRCLIB、无 TODO。
 12. **文档（16）**：README、LICENSE、NOTICE、CHANGELOG、ARCHITECTURE、AUDIT、ITERATIONS、SOCIAL、CI、music README、Windows 安装、AGENTS、dsh、素材署名。
-13. **可视化（12）**：5 张 macOS 截图 + 终端渲染 + Windows GUI CI 截图 + 非空检查。
+13. **可视化（13）**：5 张 macOS 截图 + 终端渲染 + Windows GUI/歌词 CI 截图 + 非空检查。
 14. **卸载（3）**：移除二进制/skills/music/tui、保留设置、`--purge`。
 
 ## 已知限制

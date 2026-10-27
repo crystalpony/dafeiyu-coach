@@ -27,12 +27,15 @@ README 首屏：
 
 ## 小红书（图文，5 图）
 
-图片顺序（仓库内现成截图）：
-1. `audit/screenshots/01-guide.png` — 指针+气泡+步骤
-2. `audit/screenshots/04-music.png` — 放歌跟着歌词唱
-3. `audit/screenshots/05-rice.png` — 添一碗米饭
-4. `audit/screenshots/06-windows-gui.png` — Windows 桌面窗口版
-5. `audit/screenshots/03-companion.png` — 待机陪伴
+已生成 6 张 1080×1440 图文：
+1. `docs/social/xhs-01.png` — 封面
+2. `docs/social/xhs-02.png` — Agent 指屏幕
+3. `docs/social/xhs-03.png` — 放歌跟唱
+4. `docs/social/xhs-04.png` — 添米饭
+5. `docs/social/xhs-05.png` — Windows 桌面窗口版
+6. `docs/social/xhs-06.png` — Windows 歌词唱歌
+
+抖音竖屏：`docs/social/dafeiyu-demo-9x16.mp4`（15s，6 段图文，无音轨，上传后加平台音乐）。
 
 标题：**我把大肥鱼桌宠做成了会唱歌的桌面搭子**
 
