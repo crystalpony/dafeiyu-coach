@@ -21,6 +21,7 @@ open "Dafeiyu Coach.app"        # 双击后菜单栏出现大肥鱼；自动尝�
 - app 为 ad-hoc 签名（`codesign --verify --deep --strict` 已通过），但未公证；首次打开如被 Gatekeeper 拦截：右键 → 打开，或 `xattr -dr com.apple.quarantine "Dafeiyu Coach.app"`。
 - 已实测：打包 app 用独立 `DAFEIYU_HOME` 启动，菜单栏/桌宠/素材路径正常，CLI `status/stop` 可控制。
 - 动画/指针/气泡/米饭/番茄钟/会议模式；Apple Music/网易云/QQ 音乐走系统 Now Playing。
+- 歌词：LRCLIB → 可选网易云兜底 → 本地 LRC；`music provider lrclib` 可关闭网易云；中文歌缺失时“跟着哼”。
 
 ## Windows
 

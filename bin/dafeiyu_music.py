@@ -253,8 +253,11 @@ def now_playing() -> dict | None:
 
 # ------------------------------------------------------------------ lyrics
 
-def http_json(url: str, timeout: int = 10):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+def http_json(url: str, timeout: int = 10, headers: dict | None = None):
+    h = {"User-Agent": UA, "Accept": "application/json"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(url, headers=h)
     try:
         try:
             import certifi  # type: ignore
@@ -268,7 +271,11 @@ def http_json(url: str, timeout: int = 10):
         curl = shutil.which("curl")
         if not curl:
             raise
-        p = run([curl, "-sS", "--max-time", str(timeout), "-A", UA, url], timeout=timeout + 2)
+        cmd = [curl, "-sS", "--max-time", str(timeout), "-A", UA]
+        for k, v in (headers or {}).items():
+            cmd += ["-H", f"{k}: {v}"]
+        cmd.append(url)
+        p = run(cmd, timeout=timeout + 2)
         if not p or p.returncode != 0 or not p.stdout.strip():
             raise RuntimeError(f"curl failed: {getattr(p, 'stderr', '')}")
         return json.loads(p.stdout)
@@ -368,12 +375,62 @@ def local_lyrics(track: dict) -> dict | None:
     return None
 
 
+NETEASE_HEADERS = {"Referer": "https://music.163.com/", "Origin": "https://music.163.com",
+                   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
+
+
+def netease_lyrics(track: dict) -> dict | None:
+    """可选中文歌词兜底（非官方接口，默认 auto；provider=lrclib 可关闭）。"""
+    title = track.get("title") or ""
+    artist = track.get("artist") or ""
+    if not title:
+        return None
+    try:
+        q = urllib.parse.urlencode({"s": f"{title} {artist}", "type": 1, "limit": 8, "offset": 0})
+        data = http_json("https://music.163.com/api/search/get?" + q, headers=NETEASE_HEADERS)
+        songs = ((data or {}).get("result") or {}).get("songs") or []
+    except Exception as exc:  # noqa: BLE001
+        log(f"netease search: {exc}")
+        return None
+    best = None; best_score = -1e9
+    dur = float(track.get("duration") or 0) * 1000
+    for song in songs:
+        if not isinstance(song, dict) or not song.get("id"):
+            continue
+        names = [a.get("name", "") for a in (song.get("artists") or [])]
+        score = 0
+        if norm(title) and norm(title) in norm(song.get("name", "")): score += 40
+        if norm(artist) and any(norm(artist) in norm(n) for n in names): score += 40
+        sd = float(song.get("duration") or 0)
+        if dur and sd: score += max(-20, 20 - abs(sd - dur) / 1000)
+        if score > best_score:
+            best, best_score = song, score
+    if not best:
+        return None
+    try:
+        d = http_json(f"https://music.163.com/api/song/lyric?id={best['id']}&lv=-1&kv=-1&tv=-1",
+                      headers=NETEASE_HEADERS)
+        raw = ((d or {}).get("lrc") or {}).get("lyric") or ""
+        lines = parse_lrc(raw)
+        def is_meta(t: str) -> bool:
+            return any(k in t for k in ("作词", "作曲", "编曲", "制作人", "混音", "录音", "母带", "Lyrics", "Composer", "Arranger"))
+        lines = [x for x in lines if not is_meta(x[1])]
+        if lines:
+            log(f"netease lyrics {title} - {artist}: {len(lines)} lines")
+            return {"title": title, "artist": artist, "duration": int(float(track.get("duration") or 0)),
+                    "lines": lines, "synced": True, "source": "netease", "fetchedAt": time.time()}
+    except Exception as exc:  # noqa: BLE001
+        log(f"netease lyric: {exc}")
+    return None
+
+
 def fetch_lyrics(track: dict, no_network: bool = False, allow_stale: bool = False) -> dict:
     local = local_lyrics(track)
     if local:
         return local
+    provider = str(config().get("provider") or "auto")
     cached = load_cached(track, allow_stale=allow_stale)
-    if cached is not None:
+    if cached is not None and (cached.get("lines") or provider == "lrclib"):
         return cached
     if no_network:
         return {"title": track.get("title", ""), "artist": track.get("artist", ""),
@@ -419,6 +476,10 @@ def fetch_lyrics(track: dict, no_network: bool = False, allow_stale: bool = Fals
                     t = (i / max(1, len(raw) - 1)) * max(1, dur - 6)
                     lines.append([round(t, 2), text])
         source = "lrclib"
+    if (not lines or not synced) and provider != "lrclib":
+        ne = netease_lyrics(track)
+        if ne and (ne.get("lines") and (not lines or ne.get("synced"))):
+            lines = ne["lines"]; synced = True; source = "netease"
     out = {"title": title, "artist": artist, "duration": dur, "lines": lines,
            "synced": synced, "source": source, "fetchedAt": time.time(),
            "instrumental": bool(isinstance(data, dict) and data.get("instrumental"))}
@@ -624,6 +685,8 @@ def main(argv=None) -> int:
     s.add_argument("--title", required=True)
     s.add_argument("--artist", default="")
     s = sub.add_parser("local-dir", help="显示本地歌词目录")
+    s = sub.add_parser("provider", help="歌词源：auto / lrclib / netease")
+    s.add_argument("value", choices=["auto", "lrclib", "netease"], nargs="?", default=None)
     s = sub.add_parser("offset", help="歌词整体偏移秒数")
     s.add_argument("seconds", type=float)
     args = ap.parse_args(argv)
@@ -644,7 +707,7 @@ def main(argv=None) -> int:
     if args.cmd == "status":
         cfg = config()
         t = now_playing()
-        print(f"监听：{'开' if cfg.get('enabled') else '关'} · 偏移 {cfg.get('offset', 0)}s")
+        print(f"监听：{'开' if cfg.get('enabled') else '关'} · 偏移 {cfg.get('offset', 0)}s · 歌词源 {cfg.get('provider', 'auto')}")
         if t and t.get("playing"):
             print(f"正在播放：{t.get('title')} - {t.get('artist')}  {t.get('elapsed', 0):.1f}/{t.get('duration', 0):.0f}s")
         else:
@@ -690,6 +753,12 @@ def main(argv=None) -> int:
         dest = d / name
         shutil.copy2(src, dest)
         print(f"已导入：{dest}")
+        return 0
+    if args.cmd == "provider":
+        cfg = config()
+        if args.value:
+            cfg["provider"] = args.value; save_config(cfg)
+        print(cfg.get("provider") or "auto")
         return 0
     if args.cmd == "local-dir":
         print(LYRICS_DIR / "local")

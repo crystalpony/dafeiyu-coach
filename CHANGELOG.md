@@ -14,7 +14,9 @@
 - 二进制 universal（arm64 + x86_64）；音乐 framework universal。
 - MCP 12 个工具（新增 `dafeiyu_music`、`dafeiyu_focus`）。
 
-### 修复
+### 修复 / 增强
+- 网易云歌词兜底（可选）：LRCLIB 缺中文歌时补同步歌词；`music provider lrclib` 可关闭。
+- 歌词先立即显示歌名，网络取词后台线程；LRCLIB 503 不再阻塞切歌/暂停。
 
 - macOS 15.4+ 旧 MediaRemote C API 返回空 → BSD 适配器。
 - `advanceStep/showCurrentStep` 重复 play、硬切。

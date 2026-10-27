@@ -154,7 +154,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-u4az977b/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-hvl9cyud/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -202,25 +202,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5217 字符",
+      "detail": "5260 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5217 字符",
+      "detail": "5260 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5217 字符",
+      "detail": "5260 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5217 字符",
+      "detail": "5260 字符",
       "group": "install"
     },
     {
@@ -274,7 +274,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 89204",
+      "detail": "pid 93572",
       "group": "e2e"
     },
     {
@@ -424,13 +424,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 89380",
+      "detail": "旧 pid 93644",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'B8063C8B-538A-42CE-AEF6-42250D8EC080', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'BA7DBA62-B024-443B-8409-AF10C0EA3643', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -484,13 +484,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.13381692697294056",
+      "detail": "blend=0.1710442709736526",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 63049, \"token\": \"eeacfc4cad56b0faeaf1bbdca9f0e61b\", \"pid\": 89548}",
+      "detail": "{\"port\": 64815, \"token\": \"f81fe67e6dfa938200ca7e0164cbdc19\", \"pid\": 93714}",
       "group": "tui"
     },
     {
@@ -580,13 +580,13 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.30s",
+      "detail": "0.29s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.5%",
+      "detail": "4.4%",
       "group": "perf"
     },
     {
@@ -598,7 +598,7 @@
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "5.8%",
+      "detail": "7.3%",
       "group": "perf"
     },
     {
@@ -610,7 +610,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.5% / 71MB · active 5.8% / 80MB",
+      "detail": "idle 4.4% / 71MB · active 7.3% / 80MB",
       "group": "perf"
     },
     {
@@ -626,9 +626,9 @@
       "group": "privacy"
     },
     {
-      "name": "歌词只访问 LRCLIB",
+      "name": "歌词只访问 LRCLIB / 网易云",
       "ok": true,
-      "detail": "lrclib.net",
+      "detail": "lrclib.net, music.163.com",
       "group": "privacy"
     },
     {
@@ -640,7 +640,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "11044 字符",
+      "detail": "11186 字符",
       "group": "docs"
     },
     {
@@ -790,31 +790,31 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "302 KB",
+      "detail": "308 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "301 KB",
+      "detail": "306 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "282 KB",
+      "detail": "289 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "287 KB",
+      "detail": "293 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "282 KB",
+      "detail": "288 KB",
       "group": "visual"
     },
     {
@@ -836,5 +836,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T21:27:34"
+  "at": "2026-10-27T21:39:09"
 }

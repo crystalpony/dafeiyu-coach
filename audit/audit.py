@@ -582,7 +582,8 @@ def check_privacy() -> None:
            "AF_INET" not in (ROOT / "Sources/Server.swift").read_text(), "AF_UNIX + 0600", "privacy")
     music_text = (ROOT / "bin/dafeiyu_music.py").read_text(encoding="utf-8", errors="replace")
     hosts = set(re.findall(r"https?://([^/\"']+)", music_text))
-    record("歌词只访问 LRCLIB", hosts <= {"lrclib.net"}, ", ".join(sorted(hosts)), "privacy")
+    record("歌词只访问 LRCLIB / 网易云", hosts <= {"lrclib.net", "music.163.com"},
+           ", ".join(sorted(hosts)), "privacy")
     todos = len(re.findall(r"TODO|FIXME|XXX", text))
     record("源码无 TODO/FIXME", todos == 0, f"{todos} 处", "privacy")
 

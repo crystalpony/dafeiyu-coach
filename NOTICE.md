@@ -27,6 +27,7 @@
   - 许可：**BSD-3-Clause**；版权归 ungive 及其贡献者；许可全文见 `Runtime/music/LICENSE-MediaRemoteAdapter.txt`。
   - 本项目只使用 `get` 读取系统 Now Playing；framework 为 universal、ad-hoc 签名。
 - **LRCLIB** — <https://lrclib.net/>：开放歌词查询服务。本项目仅发送歌名/歌手/时长，并在本地缓存；歌词版权归各自权利人，界面只作个人同步显示，不随项目再分发歌词文本。
+- **网易云歌词兜底（可选）**：`music.163.com` 非官方接口，默认 `provider=auto` 时在 LRCLIB 缺失后使用；可用 `music provider lrclib` 关闭。歌词版权归权利人，不随包分发。
 - **Windows SMTC**：`Runtime/music/media_smtc.ps1` 为本项目原创脚本，调用 Windows 公开的 `GlobalSystemMediaTransportControlsSessionManager`；不复制第三方代码。
 
 ## 3. 本项目许可

@@ -52,7 +52,7 @@ Windows: media_smtc.ps1 (WinRT SMTC)
         ▼
 dafeiyu_music.py watch
         │ 1s 轮询；歌曲变化时取歌词；按 elapsed 找当前行
-        │ 歌词源：本地 .lrc → LRCLIB 缓存/在线
+        │ 歌词源：本地 .lrc → LRCLIB 缓存/在线 → 网易云兜底（可关）
         ▼
 JSONL: {"cmd":"music_start|lyric|music_stop", ...}
         ▼
@@ -61,7 +61,7 @@ GUI/TUI：只在空闲、非 quiet、会议 App 不在前台时显示歌词语�
 
 - 歌词缓存：`~/.dafeiyu/lyrics/<sha1>.json`；负缓存 1h；正缓存 30 天。
 - 本地优先级：`~/.dafeiyu/lyrics/local/<title> - <artist>.lrc`（可 `music import-lrc`）。
-- 只向 LRCLIB 发送歌名/歌手/时长；无音频采集/录音/OCR。
+- 只向 LRCLIB / 网易云发送歌名/歌手/时长；无音频采集/录音/OCR；`provider=lrclib` 可关闭网易云。
 - 纯音乐/长间奏每 10s 心跳，避免气泡被 30s 超时收起；watcher 退出后 30s 自动收起。
 - 唱歌是视觉：`singing` 状态 + 音符粒子 + 摇摆；不播放 TTS。
 

@@ -38,7 +38,8 @@
 
 - macOS 用 BSD 许可的 MediaRemote 适配器读取系统 Now Playing，不需要辅助功能/录屏权限（Apple Music、网易云已真机验证）。
 - Windows 用系统 SMTC（`media_smtc.ps1`），覆盖网易云/QQ 音乐/Apple Music/Spotify。
-- 只发送 **歌名 / 歌手 / 时长** 到 LRCLIB 取歌词；不读音频、不录音、不上传任何本地文件。
+- 歌词源：LRCLIB →（可选）网易云歌词兜底 → 本地 LRC。只发送 **歌名 / 歌手 / 时长**；不读音频、不录音、不上传本地文件。
+- 不想用网易云兜底：`dafeiyu music provider lrclib`（`auto` 为默认，`netease` 可强制）。
 - 没有网络或没有歌词时：用 `~/.dafeiyu/lyrics/local/` 的 `.lrc`；再没有就显示“跟着哼”。
 - 只在**空闲、非安静模式、会议 App 不在前台**时唱歌；一有任务就让位给指导气泡。
 
@@ -50,6 +51,7 @@ dafeiyu music off                # 停止监听并收起歌词
 dafeiyu music test --line "海风轻轻吹过"   # 不联网，测试唱歌
 dafeiyu music import-lrc 晴天.lrc --title 晴天 --artist 周杰伦
 dafeiyu music offset 0.4         # 歌词整体偏移
+dafeiyu music provider lrclib    # 只使用 LRCLIB，不用网易云兜底
 ```
 
 > 唱歌是**视觉卡拉 OK**：歌词气泡 + 摇摆 + 音符；不会播放 TTS/音频，避免盖住你的音乐。
