@@ -70,6 +70,21 @@ def rounded(canvas: tk.Canvas, x1, y1, x2, y2, r, **kw):
     return canvas.create_polygon(pts, smooth=True, **kw)
 
 
+def enable_dpi_awareness() -> None:
+    """Windows 高 DPI 下先声明 DPI 感知，避免 Tk 窗口被系统位图拉伸发糊。"""
+    if not IS_WIN:
+        return
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+        return
+    except Exception:
+        pass
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
+
 def set_transparent(win) -> None:
     if IS_WIN:
         try:
@@ -217,6 +232,7 @@ class GuiApp:
         self.notes: list[int] = []
         self.hearts: list[int] = []
         self.last_rice = None
+        enable_dpi_awareness()
         self.root = tk.Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)

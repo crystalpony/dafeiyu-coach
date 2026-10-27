@@ -7,7 +7,7 @@
 - **音乐检测 / 歌词 / 唱歌**：Apple Music、网易云、QQ 音乐等系统 Now Playing；LRCLIB + 本地 LRC；空闲时播放独立唱歌动画，歌词以紧凑歌词条贴在头顶（只显示歌名与当前句，超长自动省略），并伴随摇摆和音符；`music on/off/status/now/test/import-lrc/offset`。
 - **米饭动画独立**：新增 `rice` 剪辑，白瓷碗朝上、米饭、筷子、热气逐帧绘制，不再复用 eat token 动画。
 - **BSD MediaRemote 适配器**（macOS 15.4+） + Windows SMTC 脚本；歌词 watcher 仅发送歌名/歌手/时长。
-- **Windows 桌面窗口版** `dafeiyu gui`：Tk + Pillow，透明置顶、15 段动画/交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用 Core/Server；`install.ps1` 安装 Pillow/clips。
+- **Windows 桌面窗口版** `dafeiyu gui`：Tk + Pillow，透明置顶、15 段动画/交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用 Core/Server；`install.ps1` 安装 Pillow/clips；启动时声明 DPI 感知，避免高 DPI 位图拉伸发糊。
 - **终端轻量版** `dafeiyu tui`：ASCII 宠物、歌词、步骤、米饭；Windows/macOS/Linux；本机 TCP + token；原生版运行时自动附着显示。
 - **互动**：添一碗米饭（饭碗/米饭/筷子/热气 + 计数）、番茄钟、会议模式（到点自动解除、会议 App 抑制）、减少动态。
 - **动画过渡**：优先级队列、同剪辑不重启、120–180ms 双层交叉淡化、气泡淡入、去重复 play。
