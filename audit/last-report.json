@@ -70,7 +70,7 @@
     {
       "name": "构建产物存在",
       "ok": true,
-      "detail": "1104 KB",
+      "detail": "1120 KB",
       "group": "static"
     },
     {
@@ -106,7 +106,7 @@
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1078 行",
+      "detail": "Controller.swift 1086 行",
       "group": "static"
     },
     {
@@ -130,7 +130,7 @@
     {
       "name": "二进制 < 2 MB",
       "ok": true,
-      "detail": "1104 KB",
+      "detail": "1120 KB",
       "group": "size"
     },
     {
@@ -148,7 +148,7 @@
     {
       "name": "运行体总计 < 10 MB",
       "ok": true,
-      "detail": "9.21 MB",
+      "detail": "9.23 MB",
       "group": "size"
     },
     {
@@ -166,7 +166,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-tazw0dl3/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-n0iycltr/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -286,7 +286,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 8838",
+      "detail": "pid 13869",
       "group": "e2e"
     },
     {
@@ -418,7 +418,7 @@
     {
       "name": "帧动画运行",
       "ok": true,
-      "detail": "frame 0 → 7",
+      "detail": "frame 0 → 6",
       "group": "e2e"
     },
     {
@@ -436,13 +436,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 8909",
+      "detail": "旧 pid 13936",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '54056843-D9AF-41D5-97F9-ACE5C18C3BA0', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '3F2AB956-01F1-4708-869B-E8963C6BEF41', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -514,13 +514,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.055159375187940896",
+      "detail": "blend=0.21995624992996454",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 56650, \"token\": \"95d1d5ef8fcc582329e84bd4f61f138f\", \"pid\": 8976}",
+      "detail": "{\"port\": 58121, \"token\": \"ece6b182daa9fc15fa2ed8531eee9545\", \"pid\": 13994}",
       "group": "tui"
     },
     {
@@ -610,37 +610,37 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.30s",
+      "detail": "0.31s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.6%",
+      "detail": "3.3%",
       "group": "perf"
     },
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "70 MB",
+      "detail": "69 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "6.1%",
+      "detail": "5.7%",
       "group": "perf"
     },
     {
       "name": "动画+指针 RSS < 160 MB",
       "ok": true,
-      "detail": "80 MB",
+      "detail": "78 MB",
       "group": "perf"
     },
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.6% / 70MB · active 6.1% / 80MB",
+      "detail": "idle 3.3% / 69MB · active 5.7% / 78MB",
       "group": "perf"
     },
     {
@@ -820,13 +820,13 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "303 KB",
+      "detail": "304 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "300 KB",
+      "detail": "301 KB",
       "group": "visual"
     },
     {
@@ -838,13 +838,13 @@
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "281 KB",
+      "detail": "282 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "280 KB",
+      "detail": "281 KB",
       "group": "visual"
     },
     {
@@ -866,5 +866,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T22:16:14"
+  "at": "2026-10-27T22:26:33"
 }

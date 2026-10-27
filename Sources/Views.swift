@@ -559,7 +559,7 @@ final class BubbleView: NSView {
                 .foregroundColor: NSColor(calibratedWhite: 0.48, alpha: 1),
                 .paragraphStyle: p
             ]
-            NSAttributedString(string: title, attributes: attrs)
+            NSAttributedString(string: title.replacingOccurrences(of: "\n", with: " "), attributes: attrs)
                 .draw(in: NSRect(x: textX, y: 9, width: titleW, height: 14))
         }
 
@@ -571,7 +571,7 @@ final class BubbleView: NSView {
             .foregroundColor: tone.ink,
             .paragraphStyle: p
         ]
-        let line = text.isEmpty ? "♪ 跟着哼" : text
+        let line = (text.isEmpty ? "♪ 跟着哼" : text).replacingOccurrences(of: "\n", with: " ")
         NSAttributedString(string: line, attributes: lyricAttrs)
             .draw(in: NSRect(x: textX, y: 25, width: titleW, height: 20))
     }

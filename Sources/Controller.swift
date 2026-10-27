@@ -316,7 +316,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                       subtext: bubbleView.subtext,
                                       badge: bubbleView.badge, total: bubbleView.total,
                                       music: bubbleKind == .music)
-        let s = CGFloat(settings.bubbleScale)
+        // 歌词条不跟随气泡放大，避免“头顶一条”变成大横幅
+        let s = bubbleKind == .music ? min(CGFloat(settings.bubbleScale), 1.08) : CGFloat(settings.bubbleScale)
         bubbleView.baseSize = base
         bubbleView.contentScale = s
         bubbleWindow.setContentSize(NSSize(width: ceil(base.width * s), height: ceil(base.height * s)))
@@ -706,6 +707,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             lastNoteAt = Date()
             petView.spawnNote()
         }
+        // 被拖拽/一次性动作压住后，音乐还在就恢复唱歌（不抢正在播的高优先级动作）
+        if singing, !petView.isDragging, pointerGlobal == nil, !player.busy,
+           player.currentPriority <= 85, player.resolvedName != "sing" {
+            player.play("sing", loop: true, autoIdle: true, transition: 0.20, priority: 85)
+        }
 
         if let g = glide {
             let t = min(1, (now - g.start) / g.duration)
@@ -865,6 +871,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                   !isMeetingFrontmost() else {
                 return ["ok": true, "suppressed": true]
             }
+            wake()
             singing = true
             musicLastUpdate = Date()
             petView.singing = true
@@ -887,6 +894,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 return ["ok": true, "suppressed": true]
             }
             if !singing {
+                wake()
                 singing = true
                 petView.singing = true
                 player.play("sing", loop: true, autoIdle: true, transition: 0.22, priority: 85)
