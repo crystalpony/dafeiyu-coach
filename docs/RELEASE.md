@@ -15,7 +15,7 @@
 ```bash
 unzip dafeiyu-coach-1.1.0-macos.zip
 open "Dafeiyu Coach.app"        # 双击后菜单栏出现大肥鱼；自动尝试启动歌词监听
-~/.dafeiyu/bin/dafeiyu ...      # 如使用 CLI，建议 scripts/install.sh 安装
+~/.local/bin/dafeiyu ...       # 如使用 CLI，先跑 scripts/install.sh
 ```
 
 - app 为 ad-hoc 签名（`codesign --verify --deep --strict` 已通过），但未公证；首次打开如被 Gatekeeper 拦截：右键 → 打开，或 `xattr -dr com.apple.quarantine "Dafeiyu Coach.app"`。
