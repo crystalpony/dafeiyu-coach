@@ -145,6 +145,13 @@
 13. **可视化（14）**：5 张 macOS 截图 + 终端渲染 + Windows GUI/歌词 CI 截图 + QQ 真机截图 + 非空检查。
 14. **卸载（3）**：移除二进制/skills/music/tui、保留设置、`--purge`。
 
+## 发布后验证（2026-10-27）
+
+- GitHub 仓库已 public，`v1.1.0` Release 已发布；tag 指向与源码/二进制一致的提交。
+- 从 Release 重新下载 macOS / Windows 两个 zip，`shasum -a 256 -c SHA256SUMS` 均为 `OK`。
+- Windows CI 对 GUI 冒烟做断言：普通冒烟必须结束在 `rice`，音乐冒烟必须使用 `sing`，并检查截图存在。
+- 打包后的 `.app` 在独立 HOME 中启动，读到 15 个 clip；`feed` → `rice`，歌词测试 → `sing` + 316×62 紧凑条。
+
 ## 已知限制
 
 - **Windows 桌面版是 Tk/Pillow 实现**，不是原生 WinUI；CI 跑窗口冒烟并上传截图，但尚未在真实 Windows 桌面上人工核对透明/点击穿透/字体。Windows 的 SMTC 也仅做脚本解析与 TUI 核心 CI，未在真实 Windows 上播放网易云/QQ 音乐验收。
