@@ -525,8 +525,10 @@ class GuiApp:
             self.stage.configure(bg="#f6f2ea")
             self.stage.attributes("-topmost", True)
             self.stage.geometry(f"{self.root.winfo_screenwidth()}x{self.root.winfo_screenheight()}+0+0")
-            self.stage.lower()
+            self.stage.lift()
             self.root.lift()
+            self.bubble.lift()
+            self.pointer.lift()
         except Exception:
             self.stage = None
         self.core.handle({"cmd": "feed"})
@@ -535,7 +537,7 @@ class GuiApp:
         self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
         for _ in range(12):
             if getattr(self, "stage", None) is not None:
-                self.stage.lower()
+                self.stage.lift()
                 self.root.lift()
                 self.bubble.lift()
                 self.pointer.lift()
