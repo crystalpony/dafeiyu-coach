@@ -1,4 +1,4 @@
-# 桌面大肥鱼 · Windows 系统媒体（SMTC）适配器
+﻿# 桌面大肥鱼 · Windows 系统媒体（SMTC）适配器
 # 输出：{ title, artist, album, duration, elapsed, playing, app }
 # 覆盖 Windows 上的网易云音乐、QQ 音乐、Apple Music、Spotify 等。
 $ErrorActionPreference = 'Stop'

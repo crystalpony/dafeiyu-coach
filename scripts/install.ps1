@@ -1,4 +1,4 @@
-# 桌面大肥鱼 Coach · Windows 安装（终端轻量版）
+﻿# 桌面大肥鱼 Coach · Windows 安装（终端轻量版）
 # 双击/在 PowerShell 中运行： powershell -ExecutionPolicy Bypass -File scripts\install.ps1
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path $PSScriptRoot -Parent
