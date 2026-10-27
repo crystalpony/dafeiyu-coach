@@ -4,7 +4,9 @@
 
 ## GitHub
 
-建议仓库：`crystalpony/dafeiyu-coach`（公开）
+仓库已公开：<https://github.com/crystalpony/dafeiyu-coach>（MIT）
+
+Release：[v1.1.0](https://github.com/crystalpony/dafeiyu-coach/releases/tag/v1.1.0)
 Topics：`macos` `desktop-pet` `ai-agents` `mcp` `lyrics` `swift` `appkit` `terminal`
 
 Release 1.1.0 资产（已打包，附 SHA256）：
@@ -48,6 +50,8 @@ README 首屏：
 > Mac 原生版 + Windows 终端轻量版；本地 socket、不读屏、不录音，歌词只把歌名/歌手发给 LRCLIB，也可以完全离线用本地 .lrc。
 
 标签：#桌宠 #大肥鱼 #AI工具 #效率工具 #Mac软件 #Windows软件 #独立开发
+
+置顶评论：项目已开源，搜 `crystalpony/dafeiyu-coach`，Release 里有 macOS .app 和 Windows 包。
 
 ## 抖音（30 秒竖屏脚本 / 图文）
 
