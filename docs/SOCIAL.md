@@ -7,9 +7,9 @@
 建议仓库：`crystalpony/dafeiyu-coach`（公开）
 Topics：`macos` `desktop-pet` `ai-agents` `mcp` `lyrics` `swift` `appkit` `terminal`
 
-Release 1.1.0 资产（打包稍后）：
+Release 1.1.0 资产（已打包，附 SHA256）：
 - `dafeiyu-coach-1.1.0-macos.zip`（universal .app / 二进制 + Runtime）
-- `dafeiyu-coach-1.1.0-windows.zip`（Python 终端版 + SMTC 脚本 + 安装 ps1）
+- `dafeiyu-coach-1.1.0-windows.zip`（桌面窗口版 + 终端版 + SMTC 脚本 + 安装 ps1）
 - `SHA256SUMS`
 
 README 首屏：
@@ -36,7 +36,7 @@ README 首屏：
 6. `docs/social/xhs-06.png` — Windows 歌词唱歌
 7. 可替换：`audit/screenshots/08-qq-music.png` — QQ 音乐真机
 
-抖音竖屏：`docs/social/dafeiyu-demo-9x16.mp4`（15s，6 段图文，无音轨，上传后加平台音乐）。
+抖音竖屏：`docs/social/dafeiyu-demo-9x16.mp4`（15.3s，6 段图文，无音轨，上传后加平台音乐）。
 
 标题：**我把大肥鱼桌宠做成了会唱歌的桌面搭子**
 
