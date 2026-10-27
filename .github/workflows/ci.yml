@@ -1,0 +1,56 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build daemon
+        run: ./scripts/build.sh
+      - name: Self test
+        run: .build/dafeiyu-daemon --selftest
+      - name: Python syntax
+        run: |
+          python3 -m py_compile bin/dafeiyu bin/dafeiyu_music.py bin/dafeiyu_tui.py bin/dafeiyu_mcp.py
+      - name: TUI render
+        run: python3 bin/dafeiyu_tui.py --once --no-color
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python syntax
+        run: python -m py_compile bin/dafeiyu bin/dafeiyu_music.py bin/dafeiyu_tui.py bin/dafeiyu_mcp.py
+      - name: TUI render
+        run: python bin/dafeiyu_tui.py --once --no-color
+      - name: SMTC script parses
+        shell: pwsh
+        run: |
+          $errs = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/Runtime/music/media_smtc.ps1", [ref]$null, [ref]$errs) | Out-Null
+          if ($errs) { $errs | ForEach-Object { Write-Error $_ }; exit 1 }
+      - name: TUI core + CLI over TCP
+        shell: pwsh
+        run: |
+          $env:DAFEIYU_HOME = Join-Path $env:RUNNER_TEMP "dafeiyu-home"
+          New-Item -ItemType Directory -Force -Path $env:DAFEIYU_HOME | Out-Null
+          $p = Start-Process python -ArgumentList "bin/dafeiyu_tui.py --headless --no-music --no-color" -PassThru
+          Start-Sleep -Seconds 3
+          python bin/dafeiyu status --json | Out-Host
+          python bin/dafeiyu guide --title "CI" --step "one" --step "two"
+          python bin/dafeiyu next
+          python bin/dafeiyu feed
+          python bin/dafeiyu stop
+          $p.WaitForExit(5000) | Out-Null
+      - name: Local LRC
+        shell: pwsh
+        run: |
+          $env:DAFEIYU_HOME = Join-Path $env:RUNNER_TEMP "dafeiyu-lyrics"
+          New-Item -ItemType Directory -Force -Path (Join-Path $env:DAFEIYU_HOME "lyrics/local") | Out-Null
+          Set-Content -Path (Join-Path $env:DAFEIYU_HOME "lyrics/local/测试歌 - 测试歌手.lrc") -Value "[00:00.00] one`n[00:02.00] two" -Encoding UTF8
+          $env:DAFEIYU_NOWPLAYING_JSON = '{"title":"测试歌","artist":"测试歌手","duration":10,"elapsed":1,"playing":true}'
+          python bin/dafeiyu_music.py lyrics --title "测试歌" --artist "测试歌手" --no-network

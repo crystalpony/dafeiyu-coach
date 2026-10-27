@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dafeiyu": {
+      "command": "/Users/you/.local/bin/dafeiyu",
+      "args": ["mcp"]
+    }
+  }
+}

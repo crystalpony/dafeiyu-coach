@@ -1,0 +1,866 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""桌面大肥鱼 Coach — command line bridge.
+
+Agents (Qoder / Codex / Claude Code / dsh / any shell-capable tool) call this
+script; it talks to the AppKit daemon over a local UNIX socket. No network
+access, no third-party Python packages.
+
+    dafeiyu hello --agent qoder
+    dafeiyu guide --file guide.json
+    dafeiyu point --x 640 --y 300 --label "点这里"
+    dafeiyu next --say "很好，继续下一步"
+    dafeiyu finish
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+if os.name == "nt":
+    for _stream in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            if _stream is not None:
+                _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+VERSION = "1.1.0"
+HOME = Path(os.environ.get("DAFEIYU_HOME", Path.home() / ".dafeiyu"))
+SOCKET = HOME / "coach.sock"
+PORT_FILE = HOME / "coach.port"
+LOG = HOME / "coach.log"
+OUT = HOME / "daemon.out"
+
+
+# ---------------------------------------------------------------- discovery
+
+def script_dir() -> Path:
+    return Path(os.path.realpath(__file__)).parent
+
+
+def find_daemon() -> Path | None:
+    env = os.environ.get("DAFEIYU_DAEMON")
+    if env:
+        p = Path(env).expanduser()
+        if p.exists():
+            return p
+    here = script_dir()
+    candidates = [
+        here / "dafeiyu-daemon",
+        here.parent / ".build" / "dafeiyu-daemon",
+        here.parent / "bin" / "dafeiyu-daemon",
+        HOME / "bin" / "dafeiyu-daemon",
+        Path("/usr/local/bin/dafeiyu-daemon"),
+        Path("/opt/homebrew/bin/dafeiyu-daemon"),
+    ]
+    which = shutil.which("dafeiyu-daemon")
+    if which:
+        candidates.insert(0, Path(which))
+    for p in candidates:
+        if p.is_file() and os.access(p, os.X_OK):
+            return p
+    return None
+
+
+def find_assets() -> Path | None:
+    env = os.environ.get("DAFEIYU_ASSETS")
+    if env:
+        p = Path(env).expanduser()
+        if (p / "manifest.json").exists():
+            return p
+    here = script_dir()
+    for p in [
+        HOME / "clips",
+        here.parent / "Runtime" / "clips",
+        here / "clips",
+    ]:
+        if (p / "manifest.json").exists():
+            return p
+    return None
+
+
+# ---------------------------------------------------------------- socket
+
+class CoachError(RuntimeError):
+    pass
+
+
+def _recv_line(sock: socket.socket) -> dict:
+    chunks = []
+    total = 0
+    while True:
+        data = sock.recv(65536)
+        if not data:
+            break
+        chunks.append(data)
+        total += len(data)
+        if data.endswith(b"\n") or total > 4 * 1024 * 1024:
+            break
+    raw = b"".join(chunks).strip()
+    if not raw:
+        raise CoachError("守护进程没有返回内容")
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        raise CoachError(f"无法解析守护进程响应：{exc}") from exc
+
+
+def _call_tcp(payload: dict, timeout: float = 8.0) -> dict:
+    try:
+        info = json.loads(PORT_FILE.read_text(encoding="utf-8"))
+        port = int(info["port"])
+        token = info.get("token", "")
+    except Exception as exc:  # noqa: BLE001
+        raise CoachError("没有终端版端口文件") from exc
+    sock = socket.create_connection(("127.0.0.1", port), timeout=timeout)
+    sock.settimeout(timeout)
+    try:
+        payload = dict(payload)
+        payload["token"] = token
+        sock.sendall((json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8"))
+        return _recv_line(sock)
+    finally:
+        sock.close()
+
+
+def call_raw(payload: dict, timeout: float = 8.0) -> dict:
+    if SOCKET.exists() and os.name != "nt":
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        try:
+            sock.connect(str(SOCKET))
+            sock.sendall((json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8"))
+            return _recv_line(sock)
+        except (FileNotFoundError, ConnectionRefusedError, socket.timeout):
+            pass
+        finally:
+            sock.close()
+    if PORT_FILE.exists():
+        try:
+            return _call_tcp(payload, timeout)
+        except Exception as exc:  # noqa: BLE001
+            raise CoachError(f"连不上终端版大肥鱼：{exc}") from exc
+    raise CoachError(f"连不上大肥鱼（{SOCKET} 或 {PORT_FILE}）")
+
+
+def ping() -> dict | None:
+    try:
+        r = call_raw({"cmd": "ping"}, timeout=1.5)
+        return r if r.get("ok") else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def start_daemon(quiet: bool = False) -> dict:
+    alive = ping()
+    if alive:
+        return alive
+    HOME.mkdir(parents=True, exist_ok=True)
+    daemon = find_daemon()
+    if not daemon:
+        raise CoachError("找不到 dafeiyu-daemon；Windows/无 GUI 环境请先运行：dafeiyu tui")
+    env = os.environ.copy()
+    env["DAFEIYU_HOME"] = str(HOME)
+    assets = find_assets()
+    if assets:
+        env["DAFEIYU_ASSETS"] = str(assets)
+    # 清掉上次异常退出留下的 socket（守护进程自己也会清理）
+    if SOCKET.exists() and not ping():
+        try:
+            SOCKET.unlink()
+        except OSError:
+            pass
+    with open(OUT, "ab") as out:
+        subprocess.Popen(
+            [str(daemon)],
+            stdin=subprocess.DEVNULL,
+            stdout=out,
+            stderr=out,
+            env=env,
+            start_new_session=True,
+            cwd=str(daemon.parent),
+        )
+    deadline = time.time() + 8
+    while time.time() < deadline:
+        time.sleep(0.12)
+        alive = ping()
+        if alive:
+            if not quiet:
+                print(f"大肥鱼已启动（pid {alive.get('pid')}）")
+            return alive
+        if SOCKET.exists() and not _pid_alive_from_pidfile():
+            pass
+    tail = ""
+    try:
+        tail = LOG.read_text(encoding="utf-8", errors="replace")[-800:]
+    except OSError:
+        pass
+    raise CoachError("大肥鱼启动超时。" + ("\n最近日志：\n" + tail if tail else ""))
+
+
+def _pid_alive_from_pidfile() -> bool:
+    try:
+        pid = int((HOME / "coach.pid").read_text().strip())
+    except (OSError, ValueError):
+        return True
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def call(payload: dict, auto_start: bool = True, timeout: float = 8.0) -> dict:
+    if not SOCKET.exists() and not PORT_FILE.exists():
+        if not auto_start:
+            raise CoachError("大肥鱼没有在运行（socket/port 不存在）")
+        start_daemon(quiet=True)
+    try:
+        resp = call_raw(payload, timeout=timeout)
+    except CoachError:
+        if PORT_FILE.exists() or not auto_start:
+            raise
+        start_daemon(quiet=True)
+        resp = call_raw(payload, timeout=timeout)
+    if not resp.get("ok"):
+        raise CoachError(resp.get("error") or "命令失败")
+    return resp
+
+
+# ---------------------------------------------------------------- helpers
+
+def screen_info() -> dict:
+    try:
+        return call({"cmd": "status"}, auto_start=True)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def convert(x: float, y: float, unit: str) -> tuple[float, float]:
+    if unit == "pt":
+        return x, y
+    st = screen_info()
+    screens = st.get("screens") or []
+    main = next((s for s in screens if s.get("main")), None) or (screens[0] if screens else None)
+    if unit == "norm":
+        if not main:
+            raise CoachError("无法获取主屏尺寸（守护进程未运行）")
+        f = main["frame"]
+        return f["x"] + x * f["w"], y * f["h"]
+    if unit == "px":
+        scale = st.get("mainScale") or (main or {}).get("scale") or 2
+        return x / scale, y / scale
+    raise CoachError(f"未知坐标单位：{unit}")
+
+
+def read_guide_file(path: str) -> dict:
+    if path == "-":
+        raw = sys.stdin.read()
+    else:
+        raw = Path(path).expanduser().read_text(encoding="utf-8")
+    try:
+        data = json.loads(raw)
+    except Exception as exc:  # noqa: BLE001
+        raise CoachError(f"guide JSON 解析失败：{exc}") from exc
+    if not isinstance(data, dict) or not isinstance(data.get("steps"), list):
+        raise CoachError("guide JSON 需要 {title, steps:[{text, hint?, x?, y?, label?}]}")
+    return data
+
+
+def print_human(resp: dict) -> None:
+    if "session" in resp and isinstance(resp["session"], dict):
+        s = resp["session"]
+        title = s.get("title") or "（未命名任务）"
+        print(f"任务：{title}")
+        print(f"进度：第 {min(s.get('index', 0) + 1, s.get('total', 0))}/{s.get('total', 0)} 步"
+              f"（完成 {s.get('done', 0)}）")
+        if s.get("text"):
+            print(f"当前：{s['text']}")
+        if s.get("finished"):
+            print("状态：已完成")
+        return
+    if resp.get("message"):
+        print(resp["message"])
+        return
+    if resp.get("pong"):
+        print(f"大肥鱼在运行（pid {resp.get('pid')}，v{resp.get('version')}）")
+        return
+    if resp.get("ok"):
+        print("好")
+    else:
+        print(resp.get("error", "失败"))
+
+
+def emit(resp: dict, as_json: bool) -> int:
+    if as_json:
+        print(json.dumps(resp, ensure_ascii=False, indent=2))
+    else:
+        print_human(resp)
+    return 0 if resp.get("ok", True) else 1
+
+
+# ---------------------------------------------------------------- commands
+
+def cmd_start(args) -> int:
+    info = start_daemon(quiet=args.json)
+    if args.json:
+        print(json.dumps(info, ensure_ascii=False, indent=2))
+        return 0
+    return emit(info, False)
+
+
+def cmd_stop(args) -> int:
+    def done(message: str) -> int:
+        if args.json:
+            print(json.dumps({"ok": True, "running": False, "message": message}, ensure_ascii=False))
+        else:
+            print(message)
+        return 0
+
+    if not ping():
+        try:
+            SOCKET.unlink()
+        except OSError:
+            pass
+        return done("大肥鱼本来就没在运行")
+    try:
+        call_raw({"cmd": "quit"}, timeout=3)
+    except CoachError:
+        pass
+    for _ in range(30):
+        if not ping():
+            return done("大肥鱼已退出")
+        time.sleep(0.1)
+    raise CoachError("退出超时")
+
+
+def cmd_status(args) -> int:
+    if not ping():
+        info = {"ok": True, "running": False, "version": VERSION, "socket": str(SOCKET)}
+        if args.json:
+            print(json.dumps(info, ensure_ascii=False, indent=2))
+        else:
+            print("大肥鱼没有在运行（dafeiyu start 可启动）")
+        return 0
+    st = call({"cmd": "status"}, auto_start=False)
+    st["running"] = True
+    if args.json:
+        print(json.dumps(st, ensure_ascii=False, indent=2))
+        return 0
+    uptime = st.get("uptime", 0)
+    print(f"大肥鱼 Coach v{st.get('version')} 运行中 · pid {st.get('pid')} · 已运行 {uptime}s")
+    print(f"桌宠：{'显示' if st.get('petVisible') else '隐藏'} · 气泡：{'显示' if st.get('bubbleVisible') else '隐藏'}"
+          f" · 安静模式：{'开' if st.get('quiet') else '关'}")
+    print(f"agent：{st.get('agent') or '未连接'} · 屏幕缩放 {st.get('mainScale')}x · 素材 {st.get('assets')}")
+    s = st.get("session")
+    if isinstance(s, dict):
+        print(f"任务：{s.get('title') or '未命名'} · 第 {min(s.get('index', 0) + 1, s.get('total', 0))}/{s.get('total')} 步"
+              f" · 完成 {s.get('done')} · {'已完成' if s.get('finished') else '进行中'}")
+        if s.get("text"):
+            print(f"当前：{s['text']}")
+    else:
+        print("任务：无（等待 Agent 召唤）")
+    return 0
+
+
+def cmd_hello(args) -> int:
+    return emit(call({"cmd": "hello", "agent": args.agent or "agent"}), args.json)
+
+
+def cmd_bye(args) -> int:
+    return emit(call({"cmd": "bye"}), args.json)
+
+
+def cmd_say(args) -> int:
+    payload = {"cmd": "say", "text": args.text}
+    for k in ("title", "step", "tone", "anim"):
+        v = getattr(args, k, None)
+        if v:
+            payload[k] = v
+    if args.hold is not None:
+        payload["hold"] = args.hold
+    return emit(call(payload), args.json)
+
+
+def cmd_point(args) -> int:
+    x, y = convert(args.x, args.y, args.unit)
+    payload = {"cmd": "point", "x": x, "y": y, "unit": "pt"}
+    if args.label:
+        payload["label"] = args.label
+    if args.hold is not None:
+        payload["hold"] = args.hold
+    if args.tone:
+        payload["tone"] = args.tone
+    return emit(call(payload), args.json)
+
+
+def cmd_clear_point(args) -> int:
+    return emit(call({"cmd": "clear_point"}), args.json)
+
+
+def build_guide(args) -> dict:
+    if args.file:
+        data = read_guide_file(args.file)
+    else:
+        data = {"title": args.title or "", "steps": []}
+    if args.title:
+        data["title"] = args.title
+    for text in args.step or []:
+        data.setdefault("steps", []).append({"text": text})
+    steps = data.get("steps") or []
+    if not steps:
+        raise CoachError("guide 至少要有一步：--step 文本，或 --file guide.json")
+    unit = args.unit
+    for s in steps:
+        if "x" in s and "y" in s:
+            x, y = convert(float(s["x"]), float(s["y"]), unit)
+            s["x"], s["y"] = x, y
+        if not s.get("text"):
+            raise CoachError("每一步都需要 text")
+    payload = {
+        "cmd": "guide",
+        "title": data.get("title", ""),
+        "steps": steps,
+        "start": max(0, args.start or 0),
+        "agent": args.agent or os.environ.get("DAFEIYU_AGENT", ""),
+    }
+    return payload
+
+
+def cmd_guide(args) -> int:
+    resp = call(build_guide(args))
+    if args.json:
+        print(json.dumps(resp, ensure_ascii=False, indent=2))
+        return 0
+    s = resp.get("session") or {}
+    print(f"已开始：{s.get('title') or '任务'}（{s.get('total')} 步）")
+    if s.get("text"):
+        print(f"第 {s.get('index', 0) + 1} 步：{s['text']}")
+    if s.get("label"):
+        print(f"指针：{s.get('label')} @ {s.get('x')},{s.get('y')}")
+    return 0
+
+
+def cmd_next(args) -> int:
+    payload = {"cmd": "next"}
+    if args.say:
+        payload["say"] = args.say
+    resp = call(payload)
+    if args.json:
+        print(json.dumps(resp, ensure_ascii=False, indent=2))
+        return 0
+    s = resp.get("session") or {}
+    if s.get("finished"):
+        print("全部完成，撒花！")
+    else:
+        print(f"第 {s.get('index', 0) + 1}/{s.get('total')} 步：{s.get('text', '')}")
+    return 0
+
+
+def cmd_prev(args) -> int:
+    resp = call({"cmd": "prev"})
+    return emit(resp, args.json)
+
+
+def cmd_finish(args) -> int:
+    return emit(call({"cmd": "finish"}), args.json)
+
+
+def cmd_cancel(args) -> int:
+    payload = {"cmd": "cancel"}
+    if args.text:
+        payload["text"] = args.text
+    return emit(call(payload), args.json)
+
+
+def cmd_play(args) -> int:
+    payload = {"cmd": "play", "clip": args.clip}
+    if args.text:
+        payload["text"] = args.text
+    if args.title:
+        payload["title"] = args.title
+    if args.hold is not None:
+        payload["hold"] = args.hold
+    return emit(call(payload), args.json)
+
+
+def cmd_mood(args) -> int:
+    return emit(call({"cmd": "mood", "value": args.value}), args.json)
+
+
+def cmd_hide(args) -> int:
+    return emit(call({"cmd": "hide"}), args.json)
+
+
+def cmd_show(args) -> int:
+    return emit(call({"cmd": "show"}), args.json)
+
+
+def cmd_quiet(args) -> int:
+    value = args.value == "on"
+    payload = {"cmd": "quiet", "on": value}
+    if getattr(args, "minutes", 0):
+        payload["minutes"] = args.minutes
+    return emit(call(payload), args.json)
+
+
+def cmd_scale(args) -> int:
+    return emit(call({"cmd": "config", "petScale": args.value}), args.json)
+
+
+def cmd_feed(args) -> int:
+    return emit(call({"cmd": "feed"}), args.json)
+
+
+def cmd_dance(args) -> int:
+    return emit(call({"cmd": "dance"}), args.json)
+
+
+def cmd_quip(args) -> int:
+    return emit(call({"cmd": "quip"}), args.json)
+
+
+def cmd_come(args) -> int:
+    return emit(call({"cmd": "come"}), args.json)
+
+
+def cmd_move(args) -> int:
+    x, y = convert(args.x, args.y, args.unit)
+    return emit(call({"cmd": "move", "x": x, "y": y}), args.json)
+
+
+def cmd_tui(args) -> int:
+    target = script_dir() / "dafeiyu_tui.py"
+    if not target.exists():
+        raise CoachError("找不到 dafeiyu_tui.py（请重新安装）")
+    env = os.environ.copy()
+    env["DAFEIYU_HOME"] = str(HOME)
+    argv = []
+    for flag in ("once", "headless", "no_music", "no_color"):
+        if getattr(args, flag, False):
+            argv.append("--" + flag.replace("_", "-"))
+    if getattr(args, "width", 0):
+        argv += ["--width", str(args.width)]
+    return subprocess.call([sys.executable, str(target)] + argv, env=env)
+
+
+def cmd_music(args) -> int:
+    target = script_dir() / "dafeiyu_music.py"
+    if not target.exists():
+        raise CoachError("找不到 dafeiyu_music.py（请重新安装）")
+    env = os.environ.copy()
+    env["DAFEIYU_HOME"] = str(HOME)
+    return subprocess.call([sys.executable, str(target)] + list(args.music_args or []), env=env)
+
+
+def cmd_sing(args) -> int:
+    target = script_dir() / "dafeiyu_music.py"
+    if not target.exists():
+        raise CoachError("找不到 dafeiyu_music.py（请重新安装）")
+    env = os.environ.copy()
+    env["DAFEIYU_HOME"] = str(HOME)
+    cmd = [sys.executable, str(target), "test"]
+    if args.line:
+        cmd += ["--line", args.line]
+    return subprocess.call(cmd, env=env)
+
+
+def cmd_focus(args) -> int:
+    payload = {"cmd": "focus", "minutes": args.minutes}
+    if args.cancel:
+        payload["cancel"] = True
+    return emit(call(payload), args.json)
+
+
+def cmd_demo(args) -> int:
+    return emit(call({"cmd": "demo"}), args.json)
+
+
+def cmd_info(args) -> int:
+    st = call({"cmd": "status"})
+    if args.json:
+        print(json.dumps(st, ensure_ascii=False, indent=2))
+        return 0
+    print(f"屏幕缩放：{st.get('mainScale')}x")
+    for sc in st.get("screens") or []:
+        f = sc["frame"]
+        print(f"- {'主屏' if sc.get('main') else '副屏'} {int(f['w'])}x{int(f['h'])} @ ({int(f['x'])},{int(f['y'])}) scale {sc['scale']}")
+    print("动画：" + ", ".join(st.get("clips") or []))
+    print(f"素材：{st.get('assets')}")
+    return 0
+
+
+def cmd_doctor(args) -> int:
+    checks = []
+
+    def add(name: str, ok: bool, detail: str) -> None:
+        checks.append((name, ok, detail))
+
+    alive = ping()
+    add("守护进程", bool(alive), f"pid {alive.get('pid')}" if alive else "未运行（dafeiyu start）")
+    daemon = find_daemon()
+    add("守护进程二进制", bool(daemon), str(daemon) if daemon else "未找到")
+    assets = find_assets()
+    add("动画素材", bool(assets), str(assets) if assets else "未找到 manifest.json")
+    if assets:
+        try:
+            man = json.loads((assets / "manifest.json").read_text(encoding="utf-8"))
+            clips = man.get("clips") or {}
+            frames = sum(len(c.get("frames") or []) for c in clips.values())
+            total = sum(p.stat().st_size for p in assets.rglob("*") if p.is_file())
+            add("动画清单", bool(clips), f"{len(clips)} 组 / {frames} 帧 / {total/1048576:.2f} MB")
+        except Exception as exc:  # noqa: BLE001
+            add("动画清单", False, f"读取失败：{exc}")
+    if daemon:
+        size = daemon.stat().st_size
+        add("二进制体积", size < 3 * 1024 * 1024, f"{size/1024:.0f} KB")
+    skills = []
+    for label, path in [
+        ("Qoder", Path.home() / ".qoder" / "skills" / "dafeiyu-coach" / "SKILL.md"),
+        ("Claude Code", Path.home() / ".claude" / "skills" / "dafeiyu-coach" / "SKILL.md"),
+        ("Codex", Path.home() / ".codex" / "skills" / "dafeiyu-coach" / "SKILL.md"),
+        ("dsh", Path.home() / ".dsh" / "skills" / "dafeiyu-coach" / "SKILL.md"),
+    ]:
+        skills.append(f"{label}{'✓' if path.exists() else '✗'}")
+    add("Skills", all("✓" in s for s in skills), " ".join(skills))
+    commands = []
+    for label, path in [
+        ("Qoder", Path.home() / ".qoder" / "commands" / "dafeiyu.md"),
+        ("Claude Code", Path.home() / ".claude" / "commands" / "dafeiyu.md"),
+        ("Codex", Path.home() / ".codex" / "prompts" / "dafeiyu.md"),
+    ]:
+        commands.append(f"{label}{'✓' if path.exists() else '✗'}")
+    add("斜杠命令", all("✓" in s for s in commands), " ".join(commands))
+    mcp = script_dir() / "dafeiyu_mcp.py"
+    add("MCP", mcp.exists(), str(mcp) if mcp.exists() else "缺少 dafeiyu_mcp.py")
+    tui = script_dir() / "dafeiyu_tui.py"
+    tui_running = PORT_FILE.exists() and alive and (ping() or {}).get("mode") == "tui"
+    add("终端轻量版", tui.exists(), ("运行中" if tui_running else "可用") if tui.exists() else "缺少 dafeiyu_tui.py")
+    music_dir = Path(os.environ.get("DAFEIYU_HOME", str(Path.home() / ".dafeiyu"))) / "music"
+    if not music_dir.exists():
+        music_dir = script_dir().parent / "Runtime" / "music"
+    has_adapter = (music_dir / "mediaremote-adapter.pl").exists() and (music_dir / "MediaRemoteAdapter.framework").exists()
+    has_win = (music_dir / "media_smtc.ps1").exists()
+    add("音乐检测", has_adapter or has_win,
+        f"macOS {'✓' if has_adapter else '✗'} · Windows {'✓' if has_win else '✗'} · {music_dir}")
+    ok = all(c[1] for c in checks)
+    if args.json:
+        print(json.dumps({"ok": ok, "checks": [{"name": n, "ok": o, "detail": d} for n, o, d in checks]},
+                         ensure_ascii=False, indent=2))
+    else:
+        for n, o, d in checks:
+            print(f"{'✓' if o else '✗'} {n}: {d}")
+        print("全部通过" if ok else "有项目未通过")
+    return 0 if ok else 1
+
+
+def cmd_mcp(args) -> int:
+    here = script_dir()
+    target = here / "dafeiyu_mcp.py"
+    if not target.exists():
+        raise CoachError("找不到 dafeiyu_mcp.py（请重新安装）")
+    os.execv(sys.executable, [sys.executable, str(target)])
+
+
+def cmd_version(args) -> int:
+    print(f"桌面大肥鱼 Coach {VERSION}")
+    return 0
+
+
+# ---------------------------------------------------------------- argparse
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="dafeiyu",
+        description="桌面大肥鱼 Coach：让 Agent 在屏幕上用指针、气泡和动画一步一步带你做事。",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""常用：
+  dafeiyu hello --agent qoder
+  dafeiyu guide --title "任务名" --step "第一步" --step "第二步"
+  dafeiyu guide --file guide.json          # 每步可带 x/y/label/hint
+  dafeiyu point --x 640 --y 300 --label "点这里"
+  dafeiyu next --say "做完这步喊我"
+  dafeiyu finish
+  dafeiyu bye
+
+坐标默认是主屏左上角原点的 pt；也支持 --unit px（Retina 截图像素）或 norm（0~1）。
+""",
+    )
+    p.add_argument("--json", action="store_true", help="输出原始 JSON，便于 Agent 解析")
+    p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+    sub = p.add_subparsers(dest="command")
+
+    s = sub.add_parser("start", help="启动桌宠守护进程")
+    s.set_defaults(func=cmd_start)
+
+    s = sub.add_parser("stop", help="退出桌宠")
+    s.set_defaults(func=cmd_stop)
+
+    s = sub.add_parser("status", help="查看运行状态与当前步骤")
+    s.set_defaults(func=cmd_status)
+
+    s = sub.add_parser("hello", help="向用户打招呼，声明 Agent 已连接")
+    s.add_argument("--agent", default=os.environ.get("DAFEIYU_AGENT", ""), help="Qoder / codex / dsh …")
+    s.set_defaults(func=cmd_hello)
+
+    s = sub.add_parser("bye", help="结束指导，回到待机陪伴")
+    s.set_defaults(func=cmd_bye)
+
+    s = sub.add_parser("say", help="说一句话（可带步骤徽章）")
+    s.add_argument("text")
+    s.add_argument("--title", default="")
+    s.add_argument("--step", default="", help="气泡上的小徽章，如 2/5")
+    s.add_argument("--hold", type=float, default=None, help="自动收起秒数，0/缺省为常驻")
+    s.add_argument("--tone", choices=["coach", "success", "error", "thinking"], default=None)
+    s.add_argument("--anim", default=None, help="同时播放动画：thinking / success / pat …")
+    s.set_defaults(func=cmd_say)
+
+    s = sub.add_parser("point", help="在屏幕上画指针圈")
+    s.add_argument("--x", type=float, required=True)
+    s.add_argument("--y", type=float, required=True, help="主屏左上角原点，向下为正")
+    s.add_argument("--unit", choices=["pt", "px", "norm"], default="pt")
+    s.add_argument("--label", default="")
+    s.add_argument("--hold", type=float, default=None)
+    s.add_argument("--tone", choices=["coach", "success", "error", "thinking"], default=None)
+    s.set_defaults(func=cmd_point)
+
+    s = sub.add_parser("clear-point", help="清除指针")
+    s.set_defaults(func=cmd_clear_point)
+
+    s = sub.add_parser("guide", help="开始一个分步任务")
+    s.add_argument("--title", default="")
+    s.add_argument("--step", action="append", help="简单步骤文本，可重复")
+    s.add_argument("--file", help="JSON 文件（- 表示 stdin），支持每步 x/y/label/hint")
+    s.add_argument("--start", type=int, default=0, help="从第几项开始（0 起）")
+    s.add_argument("--unit", choices=["pt", "px", "norm"], default="pt", help="JSON 内坐标的单位")
+    s.add_argument("--agent", default=os.environ.get("DAFEIYU_AGENT", ""))
+    s.set_defaults(func=cmd_guide)
+
+    s = sub.add_parser("next", help="完成当前步，进入下一步")
+    s.add_argument("--say", default=None, help="在本步显示的自定义台词")
+    s.set_defaults(func=cmd_next)
+
+    s = sub.add_parser("prev", help="回到上一步")
+    s.set_defaults(func=cmd_prev)
+
+    s = sub.add_parser("finish", help="直接完成整个任务并庆祝")
+    s.set_defaults(func=cmd_finish)
+
+    s = sub.add_parser("cancel", help="取消当前任务")
+    s.add_argument("--text", default=None)
+    s.set_defaults(func=cmd_cancel)
+
+    s = sub.add_parser("play", help="播放动画")
+    s.add_argument("clip", help="idle/thinking/working/success/error/pat/poke/tail/eat/stretch/yawn/drag/drop")
+    s.add_argument("--text", default=None, help="同时显示气泡")
+    s.add_argument("--title", default=None)
+    s.add_argument("--hold", type=float, default=None)
+    s.set_defaults(func=cmd_play)
+
+    s = sub.add_parser("mood", help="切换情绪：happy/thinking/focus/sleepy/idle")
+    s.add_argument("value")
+    s.set_defaults(func=cmd_mood)
+
+    s = sub.add_parser("hide", help="隐藏桌宠（留一个找回小圆点）")
+    s.set_defaults(func=cmd_hide)
+
+    s = sub.add_parser("show", help="显示桌宠")
+    s.set_defaults(func=cmd_show)
+
+    s = sub.add_parser("quiet", help="安静模式 / 会议模式")
+    s.add_argument("value", choices=["on", "off"], nargs="?", default="on")
+    s.add_argument("--minutes", type=float, default=0, help="会议模式持续分钟数")
+    s.set_defaults(func=cmd_quiet)
+
+    s = sub.add_parser("scale", help="设置桌宠大小 0.7~1.6")
+    s.add_argument("value", type=float)
+    s.set_defaults(func=cmd_scale)
+
+    s = sub.add_parser("tui", help="打开跨平台终端轻量版（ASCII 宠物 + 歌词 + 米饭）")
+    s.add_argument("--once", action="store_true")
+    s.add_argument("--headless", action="store_true")
+    s.add_argument("--no-music", action="store_true")
+    s.add_argument("--no-color", action="store_true")
+    s.add_argument("--width", type=int, default=0)
+    s.set_defaults(func=cmd_tui)
+
+    s = sub.add_parser("music", help="音乐检测 / 歌词 / 唱歌（now/watch/on/off/status/test）", add_help=False)
+    s.add_argument("music_args", nargs=argparse.REMAINDER)
+    s.set_defaults(func=cmd_music)
+
+    s = sub.add_parser("sing", help="让空闲大肥鱼唱一句测试歌词")
+    s.add_argument("--line", default=None)
+    s.set_defaults(func=cmd_sing)
+
+    s = sub.add_parser("focus", help="番茄钟：专注 N 分钟后叫用户休息")
+    s.add_argument("--minutes", type=float, default=25)
+    s.add_argument("--cancel", action="store_true")
+    s.set_defaults(func=cmd_focus)
+
+    s = sub.add_parser("feed", help="投喂一碗米饭")
+    s.set_defaults(func=cmd_feed)
+
+    s = sub.add_parser("dance", help="跳一段庆祝舞")
+    s.set_defaults(func=cmd_dance)
+
+    s = sub.add_parser("quip", help="让她随口说一句（按当前前台应用）")
+    s.set_defaults(func=cmd_quip)
+
+    s = sub.add_parser("come", help="游到鼠标旁边")
+    s.set_defaults(func=cmd_come)
+
+    s = sub.add_parser("move", help="把桌宠移到指定位置")
+    s.add_argument("--x", type=float, required=True)
+    s.add_argument("--y", type=float, required=True)
+    s.add_argument("--unit", choices=["pt", "px", "norm"], default="pt")
+    s.set_defaults(func=cmd_move)
+
+    s = sub.add_parser("demo", help="三段式演示（适合验收）")
+    s.set_defaults(func=cmd_demo)
+
+    s = sub.add_parser("info", help="屏幕、缩放、动画清单")
+    s.set_defaults(func=cmd_info)
+
+    s = sub.add_parser("doctor", help="自检：进程 / 素材 / 体积 / 适配器")
+    s.set_defaults(func=cmd_doctor)
+
+    s = sub.add_parser("mcp", help="以 stdio MCP 服务器运行（供 Agent 配置）")
+    s.set_defaults(func=cmd_mcp)
+
+    s = sub.add_parser("version", help="显示版本")
+    s.set_defaults(func=cmd_version)
+
+    return p
+
+
+def main(argv=None) -> int:
+    raw = list(sys.argv[1:] if argv is None else argv)
+    as_json = "--json" in raw
+    raw = [a for a in raw if a != "--json"]
+    parser = build_parser()
+    args = parser.parse_args(raw)
+    args.json = as_json or getattr(args, "json", False)
+    if not getattr(args, "func", None):
+        parser.print_help()
+        return 0
+    try:
+        return args.func(args)
+    except CoachError as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        return 130
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,3 @@
+[mcp_servers.dafeiyu]
+command = "dafeiyu"
+args = ["mcp"]

@@ -1,0 +1,804 @@
+{
+  "ok": true,
+  "passed": 123,
+  "total": 123,
+  "groups": {
+    "static": [
+      8,
+      8
+    ],
+    "size": [
+      5,
+      5
+    ],
+    "install": [
+      21,
+      21
+    ],
+    "e2e": [
+      28,
+      28
+    ],
+    "music": [
+      4,
+      4
+    ],
+    "interaction": [
+      3,
+      3
+    ],
+    "transition": [
+      1,
+      1
+    ],
+    "tui": [
+      5,
+      5
+    ],
+    "mcp": [
+      10,
+      10
+    ],
+    "perf": [
+      6,
+      6
+    ],
+    "privacy": [
+      4,
+      4
+    ],
+    "docs": [
+      14,
+      14
+    ],
+    "visual": [
+      11,
+      11
+    ],
+    "cleanup": [
+      3,
+      3
+    ]
+  },
+  "results": [
+    {
+      "name": "swiftc -warnings-as-errors 编译",
+      "ok": true,
+      "detail": "9 个源文件",
+      "group": "static"
+    },
+    {
+      "name": "构建产物存在",
+      "ok": true,
+      "detail": "1102 KB",
+      "group": "static"
+    },
+    {
+      "name": "Python 语法",
+      "ok": true,
+      "detail": "dafeiyu / dafeiyu_mcp.py",
+      "group": "static"
+    },
+    {
+      "name": "Shell 语法",
+      "ok": true,
+      "detail": "",
+      "group": "static"
+    },
+    {
+      "name": "内置单元自测（步骤/坐标/13 组素材）",
+      "ok": true,
+      "detail": "{\"ok\":true,\"tests\":\"passed\",\"clips\":13}",
+      "group": "static"
+    },
+    {
+      "name": "素材清单完整",
+      "ok": true,
+      "detail": "13 组 / 820 帧 / 缺失 0",
+      "group": "static"
+    },
+    {
+      "name": "单文件行数 < 1100",
+      "ok": true,
+      "detail": "Controller.swift 1091 行",
+      "group": "static"
+    },
+    {
+      "name": "manifest 许可与来源",
+      "ok": true,
+      "detail": "MIT — character assets from PC2005-cloud/dsh-pet",
+      "group": "static"
+    },
+    {
+      "name": "二进制 < 2 MB",
+      "ok": true,
+      "detail": "1102 KB",
+      "group": "size"
+    },
+    {
+      "name": "动画素材 < 8 MB",
+      "ok": true,
+      "detail": "6.90 MB / 820 帧",
+      "group": "size"
+    },
+    {
+      "name": "音乐适配器 < 1 MB",
+      "ok": true,
+      "detail": "669 KB",
+      "group": "size"
+    },
+    {
+      "name": "运行体总计 < 10 MB",
+      "ok": true,
+      "detail": "8.63 MB",
+      "group": "size"
+    },
+    {
+      "name": "源码 < 200 KB",
+      "ok": true,
+      "detail": "117 KB",
+      "group": "size"
+    },
+    {
+      "name": "安装脚本",
+      "ok": true,
+      "detail": "  卸载：/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/scripts/uninstall.sh（--purge 连数据一起删）",
+      "group": "install"
+    },
+    {
+      "name": "CLI 已安装",
+      "ok": true,
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-zvbbxdrq/.local/bin/dafeiyu",
+      "group": "install"
+    },
+    {
+      "name": "守护进程已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "MCP 脚本已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "动画素材已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "歌词模块已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "终端版已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "macOS 音乐适配器已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "Windows SMTC 已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "Qoder skill 有效",
+      "ok": true,
+      "detail": "5098 字符",
+      "group": "install"
+    },
+    {
+      "name": "Claude Code skill 有效",
+      "ok": true,
+      "detail": "5098 字符",
+      "group": "install"
+    },
+    {
+      "name": "Codex skill 有效",
+      "ok": true,
+      "detail": "5098 字符",
+      "group": "install"
+    },
+    {
+      "name": "dsh skill 有效",
+      "ok": true,
+      "detail": "5098 字符",
+      "group": "install"
+    },
+    {
+      "name": "Qoder /dafeiyu 命令",
+      "ok": true,
+      "detail": ".qoder/commands/dafeiyu.md",
+      "group": "install"
+    },
+    {
+      "name": "Claude Code /dafeiyu 命令",
+      "ok": true,
+      "detail": ".claude/commands/dafeiyu.md",
+      "group": "install"
+    },
+    {
+      "name": "Codex /dafeiyu 命令",
+      "ok": true,
+      "detail": ".codex/prompts/dafeiyu.md",
+      "group": "install"
+    },
+    {
+      "name": "Qoder MCP",
+      "ok": true,
+      "detail": "dafeiyu entry",
+      "group": "install"
+    },
+    {
+      "name": "Claude MCP",
+      "ok": true,
+      "detail": "dafeiyu entry",
+      "group": "install"
+    },
+    {
+      "name": "Codex MCP",
+      "ok": true,
+      "detail": "1 个块",
+      "group": "install"
+    },
+    {
+      "name": "重复安装幂等",
+      "ok": true,
+      "detail": "自定义键保留 / TOML 单块",
+      "group": "install"
+    },
+    {
+      "name": "doctor 全绿（守护进程除外）",
+      "ok": true,
+      "detail": "守护进程=False; 守护进程二进制=True; 动画素材=True; 动画清单=True; 二进制体积=True; Skills=True; 斜杠命令=True; MCP=True; 终端轻量版=True; 音乐检测=True",
+      "group": "install"
+    },
+    {
+      "name": "启动临时守护进程",
+      "ok": true,
+      "detail": "pid 68259",
+      "group": "e2e"
+    },
+    {
+      "name": "hello 注册 agent",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "guide 建任务 + px 坐标换算 + 指针",
+      "ok": true,
+      "detail": "3 步, 指针=True, x=500, y=300",
+      "group": "e2e"
+    },
+    {
+      "name": "会话已持久化",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "next 推进并清掉旧指针",
+      "ok": true,
+      "detail": "index=1, pointer=False",
+      "group": "e2e"
+    },
+    {
+      "name": "next 第二次",
+      "ok": true,
+      "detail": "index=2",
+      "group": "e2e"
+    },
+    {
+      "name": "最后一步自动完成 + 庆祝",
+      "ok": true,
+      "detail": "finished=True",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡自动收起",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "Unicode 文案",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "长文案不崩溃",
+      "ok": true,
+      "detail": "360 字",
+      "group": "e2e"
+    },
+    {
+      "name": "单独 point px 换算",
+      "ok": true,
+      "detail": "x=500",
+      "group": "e2e"
+    },
+    {
+      "name": "13 段动画均可播放",
+      "ok": true,
+      "detail": "全部 13 个 clip",
+      "group": "e2e"
+    },
+    {
+      "name": "趣味互动 feed/dance/quip",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "hide 隐藏桌宠",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "show 找回桌宠",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "quiet on",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "quiet off",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "缩放桌宠",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "cancel 清理任务",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "guide 缺步骤时报错",
+      "ok": true,
+      "detail": "错误：guide 至少要有一步：--step 文本，或 --file guide.json",
+      "group": "e2e"
+    },
+    {
+      "name": "point 缺 y 时参数错误",
+      "ok": true,
+      "detail": "exit 2",
+      "group": "e2e"
+    },
+    {
+      "name": "未知子命令报错",
+      "ok": true,
+      "detail": "exit 2",
+      "group": "e2e"
+    },
+    {
+      "name": "帧动画运行",
+      "ok": true,
+      "detail": "frame 0 → 6",
+      "group": "e2e"
+    },
+    {
+      "name": "stop 清理 socket",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "僵尸 socket 自动清理",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "崩溃后重启",
+      "ok": true,
+      "detail": "旧 pid 68320",
+      "group": "e2e"
+    },
+    {
+      "name": "未完成任务跨重启恢复",
+      "ok": true,
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '44B619A9-3E78-40D3-B2F7-2BB86CA573FA', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "group": "e2e"
+    },
+    {
+      "name": "socket 权限 0600",
+      "ok": true,
+      "detail": "0o600",
+      "group": "e2e"
+    },
+    {
+      "name": "music test 推送唱歌",
+      "ok": true,
+      "detail": "singing=True lyric=海风轻轻吹过",
+      "group": "music"
+    },
+    {
+      "name": "歌词气泡可见",
+      "ok": true,
+      "detail": "",
+      "group": "music"
+    },
+    {
+      "name": "music off 收起",
+      "ok": true,
+      "detail": "",
+      "group": "music"
+    },
+    {
+      "name": "本地 LRC + watcher 推送当前行",
+      "ok": true,
+      "detail": "lyric=第二句",
+      "group": "music"
+    },
+    {
+      "name": "米饭计数",
+      "ok": true,
+      "detail": "1 → 2",
+      "group": "interaction"
+    },
+    {
+      "name": "番茄钟到点",
+      "ok": true,
+      "detail": "focus=0 clip=success",
+      "group": "interaction"
+    },
+    {
+      "name": "会议模式到点自动解除",
+      "ok": true,
+      "detail": "",
+      "group": "interaction"
+    },
+    {
+      "name": "交叉淡化进行中",
+      "ok": true,
+      "detail": "blend=0.18123880290659145",
+      "group": "transition"
+    },
+    {
+      "name": "启动终端核心",
+      "ok": true,
+      "detail": "{\"port\": 54848, \"token\": \"21d902742a7133601714c04103ca7341\", \"pid\": 68421}",
+      "group": "tui"
+    },
+    {
+      "name": "CLI 经 TCP 读取状态",
+      "ok": true,
+      "detail": "mode=tui",
+      "group": "tui"
+    },
+    {
+      "name": "终端 guide",
+      "ok": true,
+      "detail": "已开始：TUI（2 步）\n第 1 步：第一步",
+      "group": "tui"
+    },
+    {
+      "name": "终端 next/feed/status",
+      "ok": true,
+      "detail": "rice=1 index=1",
+      "group": "tui"
+    },
+    {
+      "name": "终端 stop 退出并清理端口",
+      "ok": true,
+      "detail": "",
+      "group": "tui"
+    },
+    {
+      "name": "initialize 握手",
+      "ok": true,
+      "detail": "{'name': 'dafeiyu-coach', 'version': '1.1.0'}",
+      "group": "mcp"
+    },
+    {
+      "name": "tools/list 12 个工具",
+      "ok": true,
+      "detail": "['dafeiyu_begin', 'dafeiyu_guide', 'dafeiyu_next', 'dafeiyu_point', 'dafeiyu_say', 'dafeiyu_play', 'dafeiyu_status', 'dafeiyu_finish', 'dafeiyu_end', 'dafeiyu_music', 'dafeiyu_focus', 'dafeiyu_feed']",
+      "group": "mcp"
+    },
+    {
+      "name": "工具 schema 完整",
+      "ok": true,
+      "detail": "",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP begin 调用",
+      "ok": true,
+      "detail": "{\"agent\": \"mcp-audit\", \"message\": \"connected\", \"ok\": true}",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP guide 调用",
+      "ok": true,
+      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP next 调用",
+      "ok": true,
+      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP finish 调用",
+      "ok": true,
+      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP music 调用",
+      "ok": true,
+      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP focus 调用",
+      "ok": true,
+      "detail": "{\"focusRemaining\": 0, \"ok\": true}",
+      "group": "mcp"
+    },
+    {
+      "name": "MCP 驱动后任务已完成",
+      "ok": true,
+      "detail": "",
+      "group": "mcp"
+    },
+    {
+      "name": "冷启动 < 4s",
+      "ok": true,
+      "detail": "0.30s",
+      "group": "perf"
+    },
+    {
+      "name": "待机 CPU < 6%",
+      "ok": true,
+      "detail": "3.5%",
+      "group": "perf"
+    },
+    {
+      "name": "待机 RSS < 140 MB",
+      "ok": true,
+      "detail": "70 MB",
+      "group": "perf"
+    },
+    {
+      "name": "动画+指针 CPU < 14%",
+      "ok": true,
+      "detail": "6.9%",
+      "group": "perf"
+    },
+    {
+      "name": "动画+指针 RSS < 160 MB",
+      "ok": true,
+      "detail": "83 MB",
+      "group": "perf"
+    },
+    {
+      "name": "性能记录",
+      "ok": true,
+      "detail": "idle 3.5% / 70MB · active 6.9% / 83MB",
+      "group": "perf"
+    },
+    {
+      "name": "无网络/读屏/合成点击 API",
+      "ok": true,
+      "detail": "只使用 AF_UNIX",
+      "group": "privacy"
+    },
+    {
+      "name": "守护进程只监听 UNIX socket",
+      "ok": true,
+      "detail": "AF_UNIX + 0600",
+      "group": "privacy"
+    },
+    {
+      "name": "歌词只访问 LRCLIB",
+      "ok": true,
+      "detail": "lrclib.net",
+      "group": "privacy"
+    },
+    {
+      "name": "源码无 TODO/FIXME",
+      "ok": true,
+      "detail": "0 处",
+      "group": "privacy"
+    },
+    {
+      "name": "README 完整",
+      "ok": true,
+      "detail": "10147 字符",
+      "group": "docs"
+    },
+    {
+      "name": "LICENSE",
+      "ok": true,
+      "detail": "LICENSE",
+      "group": "docs"
+    },
+    {
+      "name": "NOTICE",
+      "ok": true,
+      "detail": "NOTICE.md",
+      "group": "docs"
+    },
+    {
+      "name": "CHANGELOG",
+      "ok": true,
+      "detail": "CHANGELOG.md",
+      "group": "docs"
+    },
+    {
+      "name": "ARCHITECTURE",
+      "ok": true,
+      "detail": "docs/ARCHITECTURE.md",
+      "group": "docs"
+    },
+    {
+      "name": "AUDIT 文档",
+      "ok": true,
+      "detail": "docs/AUDIT.md",
+      "group": "docs"
+    },
+    {
+      "name": "迭代记录",
+      "ok": true,
+      "detail": "docs/ITERATIONS.md",
+      "group": "docs"
+    },
+    {
+      "name": "发布素材",
+      "ok": true,
+      "detail": "docs/SOCIAL.md",
+      "group": "docs"
+    },
+    {
+      "name": "CI",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml",
+      "group": "docs"
+    },
+    {
+      "name": "音乐适配器说明",
+      "ok": true,
+      "detail": "Runtime/music/README.md",
+      "group": "docs"
+    },
+    {
+      "name": "Windows 安装",
+      "ok": true,
+      "detail": "scripts/install.ps1",
+      "group": "docs"
+    },
+    {
+      "name": "AGENTS 片段",
+      "ok": true,
+      "detail": "adapters/AGENTS.md",
+      "group": "docs"
+    },
+    {
+      "name": "dsh 适配说明",
+      "ok": true,
+      "detail": "adapters/dsh.md",
+      "group": "docs"
+    },
+    {
+      "name": "开源素材署名",
+      "ok": true,
+      "detail": "",
+      "group": "docs"
+    },
+    {
+      "name": "证据 01：指针 + 气泡 + 步骤",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/01-guide.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 02：完成庆祝（绿框/彩纸）",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/02-success.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 03：待机陪伴台词",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/03-companion.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 04：歌词 + 唱歌",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/04-music.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 05：米饭 + 饭碗",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/05-rice.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 06：终端版渲染",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/tui-sample.txt",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 01-guide.png",
+      "ok": true,
+      "detail": "544 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 02-success.png",
+      "ok": true,
+      "detail": "497 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 03-companion.png",
+      "ok": true,
+      "detail": "487 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 04-music.png",
+      "ok": true,
+      "detail": "487 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 05-rice.png",
+      "ok": true,
+      "detail": "488 KB",
+      "group": "visual"
+    },
+    {
+      "name": "卸载移除二进制与 skills",
+      "ok": true,
+      "detail": "全部移除",
+      "group": "cleanup"
+    },
+    {
+      "name": "卸载默认保留设置",
+      "ok": true,
+      "detail": "",
+      "group": "cleanup"
+    },
+    {
+      "name": "--purge 删除数据",
+      "ok": true,
+      "detail": "",
+      "group": "cleanup"
+    }
+  ],
+  "at": "2026-10-27T20:36:33"
+}
