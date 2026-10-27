@@ -518,11 +518,27 @@ class GuiApp:
             pass
 
     def smoke(self):
+        # CI 桌面有日志窗口；冒烟时铺一层干净的浅色舞台，只保留宠物/气泡/指针。
+        try:
+            self.stage = tk.Toplevel(self.root)
+            self.stage.overrideredirect(True)
+            self.stage.configure(bg="#f6f2ea")
+            self.stage.attributes("-topmost", True)
+            self.stage.geometry(f"{self.root.winfo_screenwidth()}x{self.root.winfo_screenheight()}+0+0")
+            self.stage.lower()
+            self.root.lift()
+        except Exception:
+            self.stage = None
         self.core.handle({"cmd": "feed"})
         self.core.handle({"cmd": "say", "title": "桌面大肥鱼", "text": "Windows 桌面版冒烟测试。",
                           "anim": "pat", "tone": "coach"})
         self.core.handle({"cmd": "point", "x": 720, "y": 250, "label": "Windows 指针"})
         for _ in range(12):
+            if getattr(self, "stage", None) is not None:
+                self.stage.lower()
+                self.root.lift()
+                self.bubble.lift()
+                self.pointer.lift()
             self.root.update()
             self.tick_smoke()
             time.sleep(0.05)
