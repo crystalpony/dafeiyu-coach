@@ -6,6 +6,7 @@
 
 - **音乐检测 / 歌词 / 唱歌**：Apple Music、网易云、QQ 音乐等系统 Now Playing；LRCLIB + 本地 LRC；空闲时歌词气泡、摇摆和音符；`music on/off/status/now/test/import-lrc/offset`。
 - **BSD MediaRemote 适配器**（macOS 15.4+） + Windows SMTC 脚本；歌词 watcher 仅发送歌名/歌手/时长。
+- **Windows 桌面窗口版** `dafeiyu gui`：Tk + Pillow，透明置顶、13 段动画/交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用 Core/Server；`install.ps1` 安装 Pillow/clips。
 - **终端轻量版** `dafeiyu tui`：ASCII 宠物、歌词、步骤、米饭；Windows/macOS/Linux；本机 TCP + token；原生版运行时自动附着显示。
 - **互动**：添一碗米饭（饭碗/米饭/筷子/热气 + 计数）、番茄钟、会议模式（到点自动解除、会议 App 抑制）、减少动态。
 - **动画过渡**：优先级队列、同剪辑不重启、120–180ms 双层交叉淡化、气泡淡入、去重复 play。

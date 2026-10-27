@@ -40,6 +40,7 @@ install -m 0755 "$ROOT/bin/dafeiyu" "$BIN/dafeiyu"
 install -m 0755 "$ROOT/bin/dafeiyu_mcp.py" "$BIN/dafeiyu_mcp.py"
 install -m 0755 "$ROOT/bin/dafeiyu_music.py" "$BIN/dafeiyu_music.py"
 install -m 0755 "$ROOT/bin/dafeiyu_tui.py" "$BIN/dafeiyu_tui.py"
+install -m 0755 "$ROOT/bin/dafeiyu_gui.py" "$BIN/dafeiyu_gui.py"
 
 say "安装动画素材到 $DATA/clips"
 mkdir -p "$DATA/clips"

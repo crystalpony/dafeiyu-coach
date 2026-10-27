@@ -2,7 +2,7 @@
 
 > 一只住在 macOS 桌面上的大肥鱼。Agent 在对话里调用她，她就在屏幕上用**指针圈、语言气泡和 13 段动画**，一步一步带用户把事情做完；放歌时会跟着歌词轻轻唱；没有任务时，她安静地陪着。
 >
-> **平台**：macOS 原生桌宠（Swift/AppKit）· Windows/macOS/Linux 终端轻量版（Python TUI）· 同一套 skills / CLI / MCP。
+> **平台**：macOS 原生桌宠（Swift/AppKit）· Windows 桌面窗口版（Tk + Pillow，透明置顶、动画/气泡/指针）· Windows/macOS/Linux 终端轻量版（Python TUI）· 同一套 skills / CLI / MCP。
 
 这是 `Desktop/qoder-coach/Coach.swift` 的**独立版**：不再绑定某个固定教程的状态文件，而是通过 **skills / CLI / MCP** 被 Qoder、Codex、Claude Code、dsh 等 Agent 调用。原来的 `Coach.swift`、`state.json` 不动。
 
@@ -20,6 +20,7 @@
 - **放歌时唱歌**：读系统 Now Playing（Apple Music / 网易云 / QQ 音乐 / Spotify），按歌词时间轴显示当前句和下一句，鱼会轻轻摇、飘音符；没有歌词就诚实显示“跟着哼”。歌词来自 LRCLIB 或本地 LRC，可完全离线。
 - **陪伴**：待机小动作、按前台应用说一句（写代码 / 查资料 / 回消息 / 做音乐）、困了打哈欠睡觉；会议模式一键安静。
 - **趣味互动**：摸头、戳身体、碰尾巴、拖拽、双击转圈、**添一碗米饭**、番茄钟专注、游到鼠标边、感知应用切换。
+- **Windows 桌面窗口版**：`dafeiyu gui`，透明无边框置顶、13 段动画 + 交叉淡化、气泡、指针、米饭、右键菜单；与 TUI 共用同一核心。
 - **终端轻量版**：`dafeiyu tui`，ASCII 鱼 + 歌词 + 步骤 + 米饭，Windows/macOS 共用同一核心；不依赖 AppKit。
 - **小体积**：单二进制 1.1 MB（universal）；13 组 / 820 帧动画共 6.90 MB；音乐适配器 196 KB；运行体总计约 8.2 MB。
 - **低占用**：待机 CPU 约 4.7%、RSS 约 71 MB；动画 + 指针约 7.2%、81 MB；冷启动 0.30 s（本机实测，见 [审计](docs/AUDIT.md)）。
@@ -69,7 +70,11 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1
 dafeiyu.cmd tui          # 或把安装目录加进 PATH 后： dafeiyu tui
 ```
 
-Windows 是**终端轻量版**（ASCII 宠物 + 歌词 + 米饭 + 步骤），不是桌面 GUI；原生桌面 GUI 仍是 macOS 先行。
+Windows 同时提供：
+- **桌面窗口版**：`dafeiyu-gui.cmd` 或 `dafeiyu gui`（Python 3.9+ / Pillow；安装脚本会装 Pillow、复制 clips）。透明置顶、拖拽、动画/气泡/指针/歌词/米饭；由 Win32 透明色 + 点击穿透实现。
+- **终端轻量版**：`dafeiyu tui`（ASCII 宠物 + 歌词 + 米饭 + 步骤），无 Pillow 也能跑。
+
+> Windows 桌面版是 Tk/Pillow 实现，视觉与 macOS AppKit 版不完全一致；CI 会跑窗口冒烟并上传截图，但不等同于真实 Windows 桌面人工验收。
 
 安装位置：
 
@@ -174,6 +179,7 @@ Codex 的 TOML、Qoder/Claude 的 JSON 片段在 [`adapters/mcp/`](adapters/mcp/
 | `dafeiyu music import-lrc …` / `offset 0.4` | 本地歌词 / 偏移 |
 | `dafeiyu focus --minutes 25` / `--cancel` | 番茄钟 |
 | `dafeiyu quiet on --minutes 60` | 会议模式（到点自动解除） |
+| `dafeiyu gui` | Windows/macOS 桌面窗口版 |
 | `dafeiyu tui` | 终端轻量版（Windows/macOS） |
 | `dafeiyu stage on\|off` | 演示舞台：盖住其它应用，截屏/录屏用 |
 | `dafeiyu hide` / `show` / `quiet on\|off` / `scale 1.2` | 显隐 / 安静 / 大小 |
@@ -283,7 +289,7 @@ python3 audit/audit.py            # 全量（安装到临时 HOME，不碰真实
 python3 audit/audit.py --no-visual
 ```
 
-覆盖 123 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
+覆盖 126 项：编译 warning-free、体积预算、单元自测、安装/幂等/卸载、CLI 全流程、音乐/歌词/米饭/番茄钟/会议模式、过渡交叉淡化、终端版 TCP、像素级截图、MCP 协议、性能采样、隐私扫描、文档完整性。见 [审计](docs/AUDIT.md)、[三轮迭代](docs/ITERATIONS.md)、[发布素材](docs/SOCIAL.md)。最近一次结果见 [docs/AUDIT.md](docs/AUDIT.md) 与 `audit/last-report.json`。
 
 ## 许可与致谢
 
@@ -299,4 +305,4 @@ python3 audit/audit.py --no-visual
 | Agent skills / CLI / MCP | ✅ | ✅ | ✅ |
 | 音乐检测 / 歌词 / 唱歌 | ✅ Apple Music / 网易云 / QQ（系统 Now Playing） | ✅ 系统 SMTC | 取决于系统 |
 | 米饭 / 番茄钟 / 会议模式 | ✅ | ✅（会议模式用 `quiet`） | ✅ |
-| 桌面 GUI | ✅ | ❌（终端版；原生 GUI 在路线图） | ❌ |
+| 桌面 GUI | ✅ AppKit | ✅ Tk/Pillow（CI 冒烟；视觉未真机人工验收） | ❌ |

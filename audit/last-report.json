@@ -1,11 +1,11 @@
 {
   "ok": true,
-  "passed": 123,
-  "total": 123,
+  "passed": 126,
+  "total": 126,
   "groups": {
     "static": [
-      8,
-      8
+      9,
+      9
     ],
     "size": [
       5,
@@ -48,8 +48,8 @@
       4
     ],
     "docs": [
-      14,
-      14
+      16,
+      16
     ],
     "visual": [
       11,
@@ -86,6 +86,12 @@
       "group": "static"
     },
     {
+      "name": "桌面窗口版依赖/素材",
+      "ok": true,
+      "detail": "yu-daemon。\n{\"ok\": true, \"platform\": \"darwin\", \"assets\": \"/Users/xiajiaju/.dafeiyu/clips\", \"tk\": 8.6, \"pillow\": \"10.4.0\"}",
+      "group": "static"
+    },
+    {
       "name": "内置单元自测（步骤/坐标/13 组素材）",
       "ok": true,
       "detail": "{\"ok\":true,\"tests\":\"passed\",\"clips\":13}",
@@ -100,7 +106,7 @@
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1096 行",
+      "detail": "Controller.swift 1098 行",
       "group": "static"
     },
     {
@@ -148,7 +154,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-jxfz6661/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-3h34dvyn/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -196,25 +202,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5131 字符",
+      "detail": "5217 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5131 字符",
+      "detail": "5217 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5131 字符",
+      "detail": "5217 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5131 字符",
+      "detail": "5217 字符",
       "group": "install"
     },
     {
@@ -268,7 +274,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 74189",
+      "detail": "pid 79009",
       "group": "e2e"
     },
     {
@@ -418,13 +424,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 74259",
+      "detail": "旧 pid 79073",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '714A34CB-2A38-4FDD-AEB2-FAB39700EC92', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '50CE51D1-E750-4826-AAD1-ED1E1883A8EA', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -478,13 +484,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.21752291650045663",
+      "detail": "blend=0.2498096349881962",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 57317, \"token\": \"d704ac6ade0c00fe7a26559c42cb3407\", \"pid\": 74337}",
+      "detail": "{\"port\": 59197, \"token\": \"86ea55972bdf5623db4e479ac4bdd3a2\", \"pid\": 79130}",
       "group": "tui"
     },
     {
@@ -574,13 +580,13 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.30s",
+      "detail": "0.18s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.4%",
+      "detail": "4.8%",
       "group": "perf"
     },
     {
@@ -592,7 +598,7 @@
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "5.9%",
+      "detail": "7.7%",
       "group": "perf"
     },
     {
@@ -604,7 +610,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.4% / 71MB · active 5.9% / 80MB",
+      "detail": "idle 4.8% / 71MB · active 7.7% / 80MB",
       "group": "perf"
     },
     {
@@ -634,7 +640,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "10342 字符",
+      "detail": "10868 字符",
       "group": "docs"
     },
     {
@@ -698,6 +704,18 @@
       "group": "docs"
     },
     {
+      "name": "Windows GUI",
+      "ok": true,
+      "detail": "bin/dafeiyu_gui.py",
+      "group": "docs"
+    },
+    {
+      "name": "Windows 依赖",
+      "ok": true,
+      "detail": "requirements-windows.txt",
+      "group": "docs"
+    },
+    {
       "name": "AGENTS 片段",
       "ok": true,
       "detail": "adapters/AGENTS.md",
@@ -754,31 +772,31 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "306 KB",
+      "detail": "302 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "361 KB",
+      "detail": "305 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "286 KB",
+      "detail": "288 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "298 KB",
+      "detail": "286 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "298 KB",
+      "detail": "281 KB",
       "group": "visual"
     },
     {
@@ -800,5 +818,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T20:51:47"
+  "at": "2026-10-27T21:03:37"
 }

@@ -144,6 +144,7 @@ dafeiyu tui                 # 打开 ASCII 宠物，空格下一步、f 添饭�
 dafeiyu tui --once          # 只渲染一帧（CI/验收）
 ```
 
+- Windows 桌面窗口版：`dafeiyu gui`（透明置顶、动画/气泡/指针），与 TUI 共用同一核心；无 Pillow 时退回 `dafeiyu tui`。
 - 原生版在跑时，`tui` 自动作为显示器附着；否则它自己当核心，CLI/MCP 通过本机 TCP + token 控制。
 - 终端版没有鼠标指针圈；`point` 会显示“看这里：标签 (x,y)”。
 

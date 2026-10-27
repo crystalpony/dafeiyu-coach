@@ -6,11 +6,11 @@
 
 ## 结论
 
-**123/123 通过。**
+**126/126 通过。**
 
 | 分组 | 通过 |
 | --- | --- |
-| 构建与静态 | 8/8 |
+| 构建与静态 | 9/9 |
 | 体积 | 5/5 |
 | 安装与适配 | 21/21 |
 | 端到端 | 28/28 |
@@ -21,10 +21,10 @@
 | MCP | 10/10 |
 | 性能 | 6/6 |
 | 隐私 | 4/4 |
-| 文档 | 14/14 |
+| 文档 | 16/16 |
 | 可视化 | 11/11 |
 | 卸载 | 3/3 |
-| **总计** | **123/123** |
+| **总计** | **126/126** |
 
 机器可读结果：`audit/last-report.json`；三轮迭代见 [ITERATIONS](ITERATIONS.md)。
 
@@ -44,8 +44,8 @@
 | 各种 Agent 适配方便 | skills + 命令 + MCP + AGENTS.md + dsh 说明 | `install`、`mcp` |
 | GitHub 复用并优化 | MIT 动画素材；BSD MediaRemote；LRCLIB；SMTC 原创 | `NOTICE`；`Runtime/music` |
 | 趣味玩法 | 摸头/戳/尾巴/拖拽/双击/米饭/跳舞/游到鼠标/应用反应 | e2e、截图 |
-| Windows + macOS | macOS 原生 GUI；Windows/macOS/Linux 终端版（TCP+token、SMTC） | `tui` 组；Windows CI |
-| 通过所有审计 | 本文件 + 机器可读报告 | 123/123 |
+| Windows + macOS | macOS 原生 GUI；Windows 桌面窗口版（Tk/Pillow）+ 终端版；SMTC | Windows CI GUI smoke；`tui` 组 |
+| 通过所有审计 | 本文件 + 机器可读报告 | 126/126 |
 
 ## 关键数据
 
@@ -107,9 +107,9 @@
   米饭 1 碗 · [f]添饭 [p]摸摸 [space]下一步 [q]退出
 ```
 
-## 自动化检查覆盖（123 项）
+## 自动化检查覆盖（126 项）
 
-1. **构建与静态（8）**：`swiftc -warnings-as-errors`、构建产物、Python/Shell 语法、内置自测（含会议 App 判断）、素材清单、单文件行数、manifest 许可。
+1. **构建与静态（9）**：`swiftc -warnings-as-errors`、构建产物、Python/Shell 语法、内置自测（含会议 App 判断）、素材清单、单文件行数、manifest 许可。
 2. **体积（5）**：二进制 / 素材 / 音乐适配器 / 运行体 / 源码。
 3. **安装与适配（21）**：安装、CLI/daemon/MCP/音乐/终端/素材、四套 skill、三套命令、MCP 配置、doctor、幂等且保留自定义配置。
 4. **端到端（28）**：hello、guide（px）、next/prev/finish/cancel、持久化、自动收起、Unicode/长文案、point、13 段 play、趣味互动、hide/show、quiet、scale、错误参数、帧动画、stop、僵尸 socket、崩溃重启、会话恢复、socket 0600。
@@ -120,13 +120,13 @@
 9. **MCP（10）**：initialize、12 工具、schema、begin/guide/next/finish/music/focus、完成态。
 10. **性能（6）**：启动、待机 CPU/RSS、动画+指针 CPU/RSS、记录。
 11. **隐私（4）**：无网络/读屏/合成点击 API（原生）、只监听本机、歌词只访问 LRCLIB、无 TODO。
-12. **文档（14）**：README、LICENSE、NOTICE、CHANGELOG、ARCHITECTURE、AUDIT、ITERATIONS、SOCIAL、CI、music README、Windows 安装、AGENTS、dsh、素材署名。
+12. **文档（16）**：README、LICENSE、NOTICE、CHANGELOG、ARCHITECTURE、AUDIT、ITERATIONS、SOCIAL、CI、music README、Windows 安装、AGENTS、dsh、素材署名。
 13. **可视化（11）**：5 张截图 + 终端渲染 + 非空检查。
 14. **卸载（3）**：移除二进制/skills/music/tui、保留设置、`--purge`。
 
 ## 已知限制
 
-- **Windows 目前是终端版**，不是原生桌面 GUI。原生桌面 GUI 仍需 Tauri/WinUI 另做；Windows 的 SMTC 仅做脚本解析与 TUI 核心 CI，尚未在真实 Windows 桌面上播放网易云/QQ 音乐验收。
+- **Windows 桌面版是 Tk/Pillow 实现**，不是原生 WinUI；CI 跑窗口冒烟并上传截图，但尚未在真实 Windows 桌面上人工核对透明/点击穿透/字体。Windows 的 SMTC 也仅做脚本解析与 TUI 核心 CI，未在真实 Windows 上播放网易云/QQ 音乐验收。
 - **QQ 音乐**未实际播放（本机未登录/无曲目）；适配器走系统 Now Playing，和网易云/Apple Music 同一条通道；QQ 音乐用户需自行播放验证。
 - **单屏实测**：多屏逻辑已实现，但没有第二块屏证据。
 - **交互点击未自动化**：审计不申请辅助功能，不合成鼠标事件；摸头/戳/尾巴/拖拽/双击/关闭按钮/菜单为代码路径 + 手工验收项。

@@ -117,7 +117,7 @@ def check_static() -> None:
 
     py_ok = True
     py_err = ""
-    for f in [CLI, MCP, ROOT / "bin/dafeiyu_music.py", ROOT / "bin/dafeiyu_tui.py"]:
+    for f in [CLI, MCP, ROOT / "bin/dafeiyu_music.py", ROOT / "bin/dafeiyu_tui.py", ROOT / "bin/dafeiyu_gui.py"]:
         try:
             compile(f.read_text(encoding="utf-8"), str(f), "exec")
         except Exception as exc:  # noqa: BLE001
@@ -128,6 +128,13 @@ def check_static() -> None:
     sh = run(["bash", "-n", str(ROOT / "scripts/install.sh"), str(ROOT / "scripts/uninstall.sh"),
               str(ROOT / "scripts/build.sh")])
     record("Shell 语法", sh.returncode == 0, sh.stderr.strip(), "static")
+
+    gui = run([sys.executable, str(ROOT / "bin/dafeiyu_gui.py"), "--check"], timeout=30)
+    try:
+        gui_ok = gui.returncode == 0 and json.loads(gui.stdout.splitlines()[-1]).get("ok") is True
+    except Exception:
+        gui_ok = False
+    record("桌面窗口版依赖/素材", gui_ok, (gui.stdout or gui.stderr).strip()[-120:], "static")
 
     p = run([str(BUILD), "--selftest"])
     record("内置单元自测（步骤/坐标/13 组素材）", p.returncode == 0, p.stdout.strip(), "static")
@@ -592,6 +599,7 @@ def check_docs() -> None:
         ("AUDIT 文档", ROOT / "docs/AUDIT.md"), ("迭代记录", ROOT / "docs/ITERATIONS.md"),
         ("发布素材", ROOT / "docs/SOCIAL.md"), ("CI", ROOT / ".github/workflows/ci.yml"),
         ("音乐适配器说明", ROOT / "Runtime/music/README.md"), ("Windows 安装", ROOT / "scripts/install.ps1"),
+        ("Windows GUI", ROOT / "bin/dafeiyu_gui.py"), ("Windows 依赖", ROOT / "requirements-windows.txt"),
         ("AGENTS 片段", ROOT / "adapters/AGENTS.md"),
         ("dsh 适配说明", ROOT / "adapters/dsh.md"),
     ]:
@@ -664,6 +672,7 @@ def check_visual() -> None:
         coach("start", timeout=20)
         st = status()
     scale = st.get("mainScale") or 2
+    coach_json("config", "--playful", "off")
     coach_json("stage", "on")
     coach_json("move", "--x", "1000", "--y", "650")
     coach_json("hello", "--agent", "audit")

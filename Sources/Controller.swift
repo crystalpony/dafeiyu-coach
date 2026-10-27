@@ -997,6 +997,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if let v = cmd["playful"] as? Bool { settings.playful = v }
             if let v = cmd["bubbleOn"] as? Bool { settings.bubbleOn = v }
             if let v = cmd["petOn"] as? Bool { settings.petOn = v }
+            if let v = cmd["sing"] as? Bool { settings.sing = v }
+            if let v = cmd["reducedMotion"] as? Bool { settings.reducedMotion = v }
             saveSettings(settings)
             applyVisibility()
             return statusPayload()

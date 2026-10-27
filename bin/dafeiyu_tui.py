@@ -168,16 +168,20 @@ class Core:
         self.focus_until = 0.0
         self.quiet = False
         self.point = None
+        self.anim = "idle"
+        self.bubble_until = 0.0
         self.last = time.time()
         self.started = time.time()
 
     def _snap(self) -> dict:
         remain = max(0, int(self.focus_until - time.time())) if self.focus_until else 0
+        visible = bool(self.bubble) and (self.bubble_until == 0 or time.time() < self.bubble_until)
         return dict(title=self.title, steps=list(self.steps), index=self.index, done=list(self.done),
                     bubble=self.bubble, badge=self.badge, bubble_title=self.bubble_title,
                     tone=self.tone, song=self.song, artist=self.artist, lyric=self.lyric,
                     next=self.next_lyric, singing=self.singing, rice=self.rice,
                     focusRemaining=remain, quiet=self.quiet, point=self.point,
+                    clip=self.anim, bubbleVisible=visible,
                     total=len(self.steps), finished=bool(self.steps) and self.index >= len(self.steps))
 
     def snapshot(self) -> dict:
@@ -195,7 +199,7 @@ class Core:
                     "hint": (st or {}).get("hint", ""), "label": (st or {}).get("label", ""),
                     "x": (st or {}).get("x"), "y": (st or {}).get("y")}
         s.update(ok=True, version=VERSION, protocol=1, mode="tui", tui=True,
-                 bubbleVisible=bool(s["bubble"]), petVisible=True, pointer=bool(s["point"]),
+                 petVisible=True, pointer=bool(s["point"]),
                  pid=os.getpid(), uptime=int(time.time() - self.started), mainScale=1,
                  screens=[], assets="terminal", clips=["tui"], socket=str(PORT_FILE),
                  agent="", playful=True, sleeping=False, petScale=1, bubbleScale=1,
@@ -239,18 +243,22 @@ class Core:
                 self.badge = f"{cmd.get('agent') or 'agent'} 已连接"
                 self.bubble = "我是大肥鱼。接下来我会一步一步说给你听。"
                 self.tone = "coach"
+                self.anim = "pat"; self.bubble_until = 0
                 self.point = None
                 return {"ok": True, "agent": cmd.get("agent") or "agent"}
             if name == "bye":
                 self.steps = []; self.index = 0; self.done = []
                 self.bubble_title = ""; self.badge = ""; self.bubble = "那我先安静陪你。"
-                self.tone = "coach"; self.point = None
+                self.tone = "coach"; self.point = None; self.anim = "idle"
                 return {"ok": True}
             if name == "say":
                 self.bubble_title = cmd.get("title", "")
                 self.badge = cmd.get("step", "")
                 self.bubble = cmd.get("text", "")
                 self.tone = cmd.get("tone", "coach")
+                hold = float(cmd.get("hold") or 0)
+                self.bubble_until = time.time() + hold if hold > 0 else 0
+                self.anim = cmd.get("anim") or "idle"
                 return {"ok": True}
             if name == "guide":
                 steps = [s for s in (cmd.get("steps") or []) if isinstance(s, dict) and s.get("text")]
@@ -261,11 +269,14 @@ class Core:
                 self.index = max(0, min(int(cmd.get("start") or 0), len(steps) - 1))
                 self.done = [False] * len(steps)
                 self._show_step()
+                st = self._step()
+                self.anim = "working" if st and st.get("x") is not None else "pat"
                 return self._status_unlocked()
             if name == "next":
                 if not self.steps:
                     return {"ok": False, "error": "当前没有进行中的 guide"}
                 self.done[self.index] = True
+                self.anim = "pat"
                 if self.index + 1 >= len(self.steps):
                     self.index = len(self.steps)
                     self.bubble_title = "完成！"
@@ -273,6 +284,7 @@ class Core:
                     self.bubble = "全部步骤都完成了，辛苦啦。"
                     self.tone = "success"
                     self.point = None
+                    self.anim = "success"
                 else:
                     self.index += 1
                     self._show_step()
@@ -295,19 +307,20 @@ class Core:
                 self.bubble = "全部步骤都完成了，辛苦啦。"
                 self.tone = "success"
                 self.point = None
+                self.anim = "success"
                 return self._status_unlocked()
             if name == "cancel":
                 self.steps = []; self.index = 0; self.done = []
                 self.bubble_title = ""; self.badge = ""
                 self.bubble = cmd.get("text") or "好，先做到这里。"
-                self.tone = "coach"; self.point = None
+                self.tone = "coach"; self.point = None; self.anim = "idle"
                 return {"ok": True}
             if name == "point":
                 self.point = (cmd.get("x"), cmd.get("y"), cmd.get("label", ""))
                 self.bubble_title = ""
                 self.badge = "指针"
                 self.bubble = f"看这里：{cmd.get('label') or '目标'}  (x={cmd.get('x')}, y={cmd.get('y')})"
-                self.tone = "coach"
+                self.tone = "coach"; self.anim = "working"
                 return {"ok": True, "x": cmd.get("x"), "y": cmd.get("y")}
             if name == "clear_point":
                 self.point = None
@@ -315,6 +328,7 @@ class Core:
             if name == "music_start":
                 self.song = cmd.get("title", ""); self.artist = cmd.get("artist", "")
                 self.singing = True; self.music_at = time.time()
+                self.anim = "idle"; self.bubble_until = 0
                 self.bubble_title = f"{self.song} · {self.artist}" if self.artist else self.song
                 self.badge = "♪ 唱歌中"; self.bubble = "准备开唱…"; self.tone = "music"
                 return {"ok": True}
@@ -330,17 +344,17 @@ class Core:
                 total = int(cmd.get("total") or 0); idx = int(cmd.get("index") or 0)
                 self.badge = f"♪ {min(idx+1,total)}/{total}" if total else "♪ 唱歌中"
                 self.bubble = self.lyric
-                self.tone = "music"
+                self.tone = "music"; self.anim = "idle"; self.bubble_until = 0
                 return {"ok": True}
             if name == "music_stop":
-                self.singing = False; self.lyric = ""; self.next_lyric = ""
+                self.singing = False; self.lyric = ""; self.next_lyric = ""; self.anim = "idle"
                 if self.tone == "music":
                     self.bubble = ""; self.badge = ""; self.bubble_title = ""
                 return {"ok": True}
             if name == "feed":
                 self.rice += 1
                 self.bubble_title = ""; self.badge = "添饭"
-                self.bubble = f"米饭！谢谢投喂，第 {self.rice} 碗。"; self.tone = "success"
+                self.bubble = f"米饭！谢谢投喂，第 {self.rice} 碗。"; self.tone = "success"; self.anim = "eat"
                 return {"ok": True, "rice": self.rice}
             if name == "focus":
                 if cmd.get("cancel"):
@@ -351,11 +365,14 @@ class Core:
                     self.focus_until = time.time() + max(0.01, min(180, minutes)) * 60
                     self.bubble_title = f"专注 {int(minutes) if minutes >= 1 else int(minutes*60)} {'分钟' if minutes >= 1 else '秒'}"
                     self.badge = "番茄钟"
-                    self.bubble = "时间到了叫你，先专心做事。"; self.tone = "thinking"
+                    self.bubble = "时间到了叫你，先专心做事。"; self.tone = "thinking"; self.anim = "yawn"
                 return {"ok": True, "focusRemaining": max(0, int(self.focus_until - time.time())) if self.focus_until else 0}
             if name == "quiet":
                 self.quiet = bool(cmd.get("on", True))
                 return {"ok": True, "quiet": self.quiet}
+            if name == "anim":
+                self.anim = cmd.get("clip") or "idle"
+                return {"ok": True, "clip": self.anim}
             if name == "hide" or name == "show":
                 return {"ok": True, "petVisible": True}
             if name == "quit":
@@ -364,7 +381,7 @@ class Core:
             if name == "play" or name == "mood":
                 self.bubble_title = ""; self.badge = "动画"
                 self.bubble = cmd.get("text") or f"（{cmd.get('clip') or cmd.get('value') or 'idle'}）"
-                self.tone = "coach"
+                self.tone = "coach"; self.anim = cmd.get("clip") if name == "play" else {"happy":"pat","think":"thinking","thinking":"thinking","focus":"working","working":"working","sleepy":"yawn","error":"error"}.get(cmd.get("value"), "idle")
                 return {"ok": True}
             return {"ok": False, "error": f"终端版暂不支持：{name}"}
 
@@ -376,7 +393,7 @@ class Core:
                 self.bubble_title = "时间到"
                 self.badge = "番茄钟完成"
                 self.bubble = "休息一下，喝口水，站起来走两步。"
-                self.tone = "success"
+                self.tone = "success"; self.anim = "success"
             if self.singing and self.music_at and time.time() - self.music_at > 30:
                 self.singing = False
                 if self.tone == "music":
@@ -470,7 +487,7 @@ def render(core: Core, width: int, color: bool) -> str:
     if s["singing"]:
         lines.append(f"{c('magenta')}      ♪   ♫{reset}")
     lines.append("")
-    if s["bubble"] or s["bubble_title"]:
+    if (s["bubble"] or s["bubble_title"]) and s.get("bubbleVisible", True):
         inner = w - 4
         box = []
         if s["bubble_title"]:

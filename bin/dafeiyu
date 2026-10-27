@@ -539,8 +539,38 @@ def cmd_move(args) -> int:
     return emit(call({"cmd": "move", "x": x, "y": y}), args.json)
 
 
+def cmd_config(args) -> int:
+    payload = {"cmd": "config"}
+    if args.playful:
+        payload["playful"] = args.playful == "on"
+    if args.quiet:
+        payload["quiet"] = args.quiet == "on"
+    if args.sing:
+        payload["sing"] = args.sing == "on"
+    if args.reduced_motion:
+        payload["reducedMotion"] = args.reduced_motion == "on"
+    if args.pet_scale is not None:
+        payload["petScale"] = args.pet_scale
+    if args.bubble_scale is not None:
+        payload["bubbleScale"] = args.bubble_scale
+    return emit(call(payload), args.json)
+
+
 def cmd_stage(args) -> int:
     return emit(call({"cmd": "stage", "on": args.value == "on"}), args.json)
+
+
+def cmd_gui(args) -> int:
+    target = script_dir() / "dafeiyu_gui.py"
+    if not target.exists():
+        raise CoachError("找不到 dafeiyu_gui.py（请重新安装）")
+    env = os.environ.copy()
+    env["DAFEIYU_HOME"] = str(HOME)
+    argv = []
+    if getattr(args, "no_music", False): argv.append("--no-music")
+    if getattr(args, "smoke", False): argv.append("--smoke")
+    if getattr(args, "check", False): argv.append("--check")
+    return subprocess.call([sys.executable, str(target)] + argv, env=env)
 
 
 def cmd_tui(args) -> int:
@@ -790,9 +820,24 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("value", type=float)
     s.set_defaults(func=cmd_scale)
 
+    s = sub.add_parser("config", help="配置：互动/安静/唱歌/减少动态/大小")
+    s.add_argument("--playful", choices=["on", "off"])
+    s.add_argument("--quiet", choices=["on", "off"])
+    s.add_argument("--sing", choices=["on", "off"])
+    s.add_argument("--reduced-motion", choices=["on", "off"])
+    s.add_argument("--pet-scale", type=float)
+    s.add_argument("--bubble-scale", type=float)
+    s.set_defaults(func=cmd_config)
+
     s = sub.add_parser("stage", help="演示舞台：盖住其它应用，便于截图/录屏")
     s.add_argument("value", choices=["on", "off"], nargs="?", default="on")
     s.set_defaults(func=cmd_stage)
+
+    s = sub.add_parser("gui", help="Windows/macOS 桌面窗口版（透明置顶、动画、气泡、指针）")
+    s.add_argument("--no-music", action="store_true")
+    s.add_argument("--smoke", action="store_true")
+    s.add_argument("--check", action="store_true")
+    s.set_defaults(func=cmd_gui)
 
     s = sub.add_parser("tui", help="打开跨平台终端轻量版（ASCII 宠物 + 歌词 + 米饭）")
     s.add_argument("--once", action="store_true")

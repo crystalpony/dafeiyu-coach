@@ -84,9 +84,24 @@
 - macOS 真机：网易云/Apple Music 播放 → 歌词 → 唱歌 → 暂停收起；交叉淡化 `blend<1`；米饭计数；番茄钟；会议模式。
 - 审计结果见 `docs/AUDIT.md` 与 `audit/last-report.json`。
 
+## 追加轮：用户要求补 Windows 原生桌面 GUI（验收后追加）
+
+**画像**：Windows 主力机用户，不接受“Windows 只有终端”。
+
+**发现/改动**
+
+- 新增 `bin/dafeiyu_gui.py`：Tk + Pillow，透明无边框置顶窗口、拖拽、13 段 WebP 动画 + `Image.blend` 交叉淡化、气泡、指针圈、米饭/番茄钟/右键菜单。
+- 复用终端版 `Core/Server`：Windows GUI 自己当核心（本机 TCP + token），CLI/MCP/skills 仍可控制；不与 TUI 重复实现状态机。
+- Windows 透明色抠图 + Win32 `WS_EX_TRANSPARENT/LAYERED/NOACTIVATE` 点击穿透；`pythonw` 启动无控制台。
+- `dafeiyu gui` / `dafeiyu-gui.cmd`；`install.ps1` 复制 clips、安装 Pillow。
+- GUI 冒烟：macOS `--check/--smoke`；GitHub Actions Windows 运行 `--smoke` 并上传 `gui-smoke.png`。
+- 修：实例属性 `self.smoke` 覆盖方法导致 `TypeError`；默认位置在小屏越界；气泡 accent 未按 tone 着色。
+
+**验收边界**：Windows 窗口版是 Tk/Pillow，视觉与 macOS AppKit 不等同；CI 冒烟≠真实 Windows 人工验收。若要求原生 WinUI/Tauri 级体验，需要下一轮重写。
+
 ## 刻意没做的事（避免“假完成”）
 
-- Windows **原生桌面 GUI** 还没做：当前 Windows 是终端版（用户明确要过“终端轻量版”）。要做桌面鱼，需要 Tauri/WinUI 另开一轮，不能拿 TUI 冒充 GUI。
+- Windows 桌面 GUI 已用 Tk/Pillow 补上，但不是 WinUI/Tauri 原生；Windows 的微交互/字体/透明边缘仍需真实机器核对。
 - 没有读取歌曲音频、没有录音、没有 OCR 歌词；只读系统 Now Playing 元数据。
 - 没有自动发布到自媒体；文案与素材已准备，发布前需要用户确认账号与措辞。
 - 没有饥饿惩罚/强制投喂；米饭是互动，不是打卡压力。
