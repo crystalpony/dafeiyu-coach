@@ -66,8 +66,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var wakeObserver: NSObjectProtocol?
 
     let petBase = NSSize(width: 210, height: 175)
-    let petScaleRange: ClosedRange<Double> = 0.7...1.6
-    let bubbleScaleRange: ClosedRange<Double> = 0.85...1.4
+    var bubbleDrawScale: CGFloat = 1.0
 
     // MARK: 初始化
 
@@ -81,12 +80,25 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func clampSettings() {
+        let petLimits = petScaleLimits()
         settings.petScale = Double(clamp(CGFloat(settings.petScale),
-                                         CGFloat(petScaleRange.lowerBound),
-                                         CGFloat(petScaleRange.upperBound)))
+                                         CGFloat(petLimits.min), CGFloat(petLimits.max)))
+        let bubbleBase = NSSize(width: 336, height: 64)
+        let bLimits = bubbleScaleLimits(for: bubbleBase)
         settings.bubbleScale = Double(clamp(CGFloat(settings.bubbleScale),
-                                            CGFloat(bubbleScaleRange.lowerBound),
-                                            CGFloat(bubbleScaleRange.upperBound)))
+                                            CGFloat(bLimits.min), CGFloat(bLimits.max)))
+        // 手动宽高可能是旧机器/旧屏幕留下的，按当前屏幕收进安全范围。
+        let m = bubbleManualLimits()
+        if let w = settings.bubbleW {
+            settings.bubbleW = Double(clamp(CGFloat(w), m.minW, m.maxW))
+        }
+        if let h = settings.bubbleH {
+            settings.bubbleH = Double(clamp(CGFloat(h), m.minH, m.maxH))
+        }
+        if settings.bubbleW == nil || settings.bubbleH == nil {
+            settings.bubbleW = nil
+            settings.bubbleH = nil
+        }
     }
 
     // MARK: 生命周期
@@ -102,7 +114,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         observeWorkspace()
 
         petWindow.orderFrontRegardless()
-        if let s = session, !s.steps.isEmpty, !s.finished {
+        if guideEnabled, let s = session, !s.steps.isEmpty, !s.finished {
             session = s
             showCurrentStep(playAnim: false)
         } else {
@@ -265,6 +277,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: 气泡
 
     var petVisible: Bool { settings.petOn }
+    var guideEnabled: Bool { GuideGate.allows(settings) }
     var bubbleVisible: Bool {
         settings.bubbleOn && bubbleContent && !bubbleUserHidden && !bubbleAutoHidden && settings.petOn
     }
@@ -309,71 +322,6 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             bubbleHideWork = work
             DispatchQueue.main.asyncAfter(deadline: .now() + min(hold, 600), execute: work)
         }
-    }
-
-    func layoutBubble() {
-        let base = BubbleView.measure(title: bubbleView.title, text: bubbleView.text,
-                                      subtext: bubbleView.subtext,
-                                      badge: bubbleView.badge, total: bubbleView.total,
-                                      music: bubbleKind == .music)
-        // 歌词条不跟随气泡放大，避免“头顶一条”变成大横幅
-        let s = bubbleKind == .music ? min(CGFloat(settings.bubbleScale), 1.08) : CGFloat(settings.bubbleScale)
-        bubbleView.baseSize = base
-        bubbleView.contentScale = s
-        bubbleWindow.setContentSize(NSSize(width: ceil(base.width * s), height: ceil(base.height * s)))
-        bubbleView.frame = NSRect(origin: .zero, size: bubbleWindow.contentView!.bounds.size)
-        bubbleView.needsDisplay = true
-        repositionBubble()
-    }
-
-    func repositionBubble() {
-        guard petWindow != nil, bubbleWindow != nil else { return }
-        let pf = petWindow.frame
-        let bsize = bubbleWindow.frame.size
-        let screen = petWindow.screen ?? ScreenSpace.mainScreen
-        let vf = screen.visibleFrame
-        let gap: CGFloat = 8
-
-        if bubbleKind == .music {
-            // 歌词贴在头顶，居中，不挡住桌面
-            var ox = clamp(pf.midX - bsize.width / 2, vf.minX + 4, vf.maxX - bsize.width - 4)
-            var oy = pf.maxY + 6
-            if oy + bsize.height > vf.maxY - 4 {
-                oy = pf.minY - bsize.height - 6
-            }
-            ox = clamp(ox, vf.minX + 4, vf.maxX - bsize.width - 4)
-            oy = clamp(oy, vf.minY + 4, vf.maxY - bsize.height - 4)
-            bubbleWindow.setFrameOrigin(NSPoint(x: ox, y: oy))
-            bubbleView.tailOnRight = false
-            bubbleView.tailAtBottom = true
-            bubbleView.needsDisplay = true
-            closeWindow.orderOut(nil)
-            return
-        }
-
-        var originX: CGFloat
-        var tailOnRight: Bool
-        if pf.maxX + gap + bsize.width <= vf.maxX - 4 {
-            originX = pf.maxX + gap
-            tailOnRight = false
-        } else if pf.minX - gap - bsize.width >= vf.minX + 4 {
-            originX = pf.minX - gap - bsize.width
-            tailOnRight = true
-        } else {
-            originX = clamp(pf.maxX + gap, vf.minX + 4, vf.maxX - bsize.width - 4)
-            tailOnRight = false
-        }
-        var originY = pf.maxY - bsize.height - 4
-        originY = clamp(originY, vf.minY + 4, vf.maxY - bsize.height - 4)
-        bubbleWindow.setFrameOrigin(NSPoint(x: originX, y: originY))
-        bubbleView.tailOnRight = tailOnRight
-        bubbleView.needsDisplay = true
-
-        let bodyRight = originX + bsize.width - (tailOnRight ? 11 * CGFloat(settings.bubbleScale) : 0)
-        let closeSize: CGFloat = 24
-        closeWindow.setFrame(NSRect(x: bodyRight - closeSize - 5,
-                                    y: originY + bsize.height - closeSize - 5,
-                                    width: closeSize, height: closeSize), display: false)
     }
 
     func hideBubbleByUser() {
@@ -429,6 +377,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func stopMusicDisplay() {
         singing = false
         musicLastUpdate = nil
+        songTitle = ""
+        songArtist = ""
+        lyricLine = ""
+        nextLyric = ""
         petView.singing = false
         if bubbleKind == .music {
             bubbleContent = false
@@ -440,6 +392,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: 指针
 
     func showPointer(topLeft: CGPoint, label: String, hold: Double, tone: BubbleTone) {
+        guard guideEnabled else {
+            logLine("pointer blocked: guide mode off")
+            return
+        }
         let appKit = ScreenSpace.toAppKit(topLeft)
         pointerGlobal = appKit
         pointerLabel = label
@@ -484,8 +440,40 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: 步骤 / 指导
 
-    func startGuide(title: String, steps: [CoachStep], start: Int, agent: String) {
-        guard !steps.isEmpty else { return }
+    /// 指引模式总开关。关闭时立刻清空任务、指针与任务气泡，回到空闲。
+    func setGuideEnabled(_ on: Bool, announce: Bool = true) {
+        wake()
+        settings.guideEnabled = on
+        saveSettings(settings)
+        if on {
+            logLine("guide mode on")
+            if announce, bubbleKind != .music {
+                showBubble(title: "任务指导", text: "指引模式已开启。需要时我会一步一步带你做。",
+                           badge: "已开启", tone: .success, hold: 4)
+            }
+            return
+        }
+        let hadTask = session != nil
+        session = nil
+        saveSession(nil)
+        clearPointer()
+        if !singing {
+            player.play("idle", loop: true, autoIdle: true, transition: 0.18, priority: 90, force: true)
+        }
+        logLine("guide mode off clearedTask=\(hadTask)")
+        if announce, bubbleKind != .music {
+            showBubble(title: "任务指导",
+                       text: hadTask ? "指引模式已关闭，当前任务已清空，我先安静待着。" : "指引模式已关闭，我先安静待着。要再开启就在菜单里勾上。",
+                       badge: "已关闭", tone: .coach, hold: 4)
+        } else if !announce, bubbleKind == .coach {
+            bubbleKind = .none
+            hideBubble(auto: false)
+        }
+    }
+
+    @discardableResult
+    func startGuide(title: String, steps: [CoachStep], start: Int, agent: String) -> Bool {
+        guard guideEnabled, !steps.isEmpty else { return false }
         singing = false
         petView.singing = false
         var s = CoachSession(title: title, steps: steps, index: start,
@@ -496,6 +484,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         saveSession(s)
         showCurrentStep(playAnim: true)
         logLine("guide start title=\(title) steps=\(steps.count)")
+        return true
     }
 
     func showCurrentStep(playAnim: Bool) {
@@ -645,31 +634,6 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         refreshPetPoint()
     }
 
-    func setPetScale(_ v: Double) {
-        settings.petScale = Double(clamp(CGFloat(v), CGFloat(petScaleRange.lowerBound), CGFloat(petScaleRange.upperBound)))
-        let size = petSize()
-        var f = petWindow.frame
-        let center = NSPoint(x: f.midX, y: f.midY)
-        f.size = size
-        f.origin = NSPoint(x: center.x - size.width / 2, y: center.y - size.height / 2)
-        let screen = petWindow.screen ?? ScreenSpace.mainScreen
-        f.origin.x = clamp(f.origin.x, screen.visibleFrame.minX, screen.visibleFrame.maxX - size.width)
-        f.origin.y = clamp(f.origin.y, screen.visibleFrame.minY, screen.visibleFrame.maxY - size.height)
-        petWindow.setFrame(f, display: true)
-        petView.frame = NSRect(origin: .zero, size: size)
-        petView.needsDisplay = true
-        saveSettings(settings)
-        savePosition()
-        repositionBubble()
-        refreshPetPoint()
-    }
-
-    func setBubbleScale(_ v: Double) {
-        settings.bubbleScale = Double(clamp(CGFloat(v), CGFloat(bubbleScaleRange.lowerBound), CGFloat(bubbleScaleRange.upperBound)))
-        saveSettings(settings)
-        layoutBubble()
-    }
-
     func showPetByUser() {
         settings.petOn = true
         bubbleUserHidden = false
@@ -768,10 +732,15 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             clearPointer()
             player.play("pat", loop: false, autoIdle: true)
             petView.burstHearts(count: 4)
-            showBubble(title: "大肥鱼在听", text: "我是大肥鱼。接下来我会一步一步说给你听；需要指哪里，我就游过去。",
-                       badge: "\(agent) 已连接", tone: .coach, hold: 8)
-            logLine("hello agent=\(agent)")
-            return ["ok": true, "agent": agent, "message": "connected"]
+            if guideEnabled {
+                showBubble(title: "大肥鱼在听", text: "我是大肥鱼。接下来我会一步一步说给你听；需要指哪里，我就游过去。",
+                           badge: "\(agent) 已连接", tone: .coach, hold: 8)
+            } else {
+                showBubble(title: "大肥鱼在听", text: "我在。不过指引模式关着，需要任务指导请先在菜单里打开。",
+                           badge: "\(agent) 已连接 · 指引已关", tone: .coach, hold: 6)
+            }
+            logLine("hello agent=\(agent) guideEnabled=\(guideEnabled)")
+            return ["ok": true, "agent": agent, "message": "connected", "guideEnabled": guideEnabled]
 
         case "bye", "end":
             session = nil
@@ -798,6 +767,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return ["ok": true]
 
         case "point":
+            guard guideEnabled else {
+                return ["ok": false, "error": GuideGate.disabledMessage, "guideEnabled": false]
+            }
             guard let x = num(cmd["x"]), let y = num(cmd["y"]) else {
                 return ["ok": false, "error": "point 需要 x / y"]
             }
@@ -826,6 +798,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return ["ok": true]
 
         case "guide":
+            guard guideEnabled else {
+                return ["ok": false, "error": GuideGate.disabledMessage, "guideEnabled": false]
+            }
             let title = (cmd["title"] as? String) ?? ""
             let raw = (cmd["steps"] as? [[String: Any]]) ?? []
             var steps: [CoachStep] = []
@@ -981,6 +956,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "config":
             if let v = num(cmd["petScale"]) { setPetScale(v) }
             if let v = num(cmd["bubbleScale"]) { setBubbleScale(v) }
+            if let w = num(cmd["bubbleW"]), let h = num(cmd["bubbleH"]) { setBubbleSize(width: w, height: h) }
+            if bool(cmd["bubbleAuto"], default: false) { resetBubbleSize() }
+            if let g = cmd["guideEnabled"] as? Bool { setGuideEnabled(g) }
             if let v = cmd["quiet"] as? Bool { settings.quiet = v }
             if let v = cmd["playful"] as? Bool { settings.playful = v }
             if let v = cmd["bubbleOn"] as? Bool { settings.bubbleOn = v }
@@ -1034,7 +1012,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return ["ok": true]
 
         case "demo":
-            runDemo()
+            guard runDemo() else {
+                return ["ok": false, "error": GuideGate.disabledMessage, "guideEnabled": false]
+            }
             return ["ok": true, "demo": true]
 
         case "quit":
@@ -1048,7 +1028,13 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    func runDemo() {
+    @discardableResult
+    func runDemo() -> Bool {
+        guard guideEnabled else {
+            showBubble(title: "任务指导", text: "指引模式关着。先在菜单里打开「任务指导（指引模式）」，我就能演示了。",
+                       badge: "已关闭", tone: .coach, hold: 5)
+            return false
+        }
         let oldQuiet = settings.quiet
         let oldPlayful = settings.playful
         settings.quiet = false
@@ -1058,7 +1044,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         showBubble(title: "大肥鱼 Coach", text: "演示开始：我会先打个招呼，然后一步一步带你做。",
                    badge: "demo", tone: .coach, hold: 3)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in
-            guard let self else { return }
+            guard let self, self.guideEnabled else { return }
             let screen = ScreenSpace.mainScreen.frame
             let steps = [
                 CoachStep(text: "先看这个红色圆环。它指着屏幕上要点的位置，气泡里写的是这一步要做什么。",
@@ -1081,6 +1067,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self.settings.quiet = oldQuiet
             self.settings.playful = oldPlayful
         }
+        return true
     }
 
 }

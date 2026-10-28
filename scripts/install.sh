@@ -117,7 +117,7 @@ fi
 
 DAFEIYU_BIN="$BIN/dafeiyu" DAFEIYU_HOME="$DATA" HOME="$HOME" python3 - "$DATA" "$BIN" "${SKILLS[@]}" <<'PY'
 import json, os, sys, time
-data = {"version": "1.1.0", "installedAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
+data = {"version": "1.2.0", "installedAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "bin": os.environ["DAFEIYU_BIN"], "data": sys.argv[1],
         "skills": sys.argv[3:], "mcp": "see qoder/claude/codex configs"}
 Path = __import__("pathlib").Path
@@ -126,6 +126,9 @@ PY
 
 if [[ $DO_START -eq 1 ]]; then
   say "启动大肥鱼"
+  # 升级安装时先停旧进程，确保刚复制的新二进制/新 watcher 真正生效
+  DAFEIYU_HOME="$DATA" "$BIN/dafeiyu" music off >/dev/null 2>&1 || true
+  DAFEIYU_HOME="$DATA" "$BIN/dafeiyu" stop >/dev/null 2>&1 || true
   DAFEIYU_HOME="$DATA" "$BIN/dafeiyu" start || true
   if [[ $NO_MUSIC -eq 0 ]]; then
     DAFEIYU_HOME="$DATA" "$BIN/dafeiyu" music on || true

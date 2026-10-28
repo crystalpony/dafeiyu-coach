@@ -358,9 +358,87 @@ def check_e2e() -> None:
     record("缩放桌宠", abs((status().get("petScale") or 0) - 1.2) < 0.01, "", "e2e")
     coach_json("scale", "1.0")
 
+    # 桌宠大小安全下限：仍然点得到；上限：不超过屏幕一半
+    coach_json("config", "--pet-scale", "0.01")
+    st = status()
+    record("桌宠最小 35% 仍可点击", abs((st.get("petScale") or 0) - 0.35) < 0.01
+           and (st.get("pet") or {}).get("w", 0) >= 70,
+           f"{st.get('pet', {}).get('w')}x{st.get('pet', {}).get('h')}", "e2e")
+    coach_json("config", "--pet-scale", "9")
+    st = status()
+    record("桌宠最大不超过半屏", abs((st.get("petScale") or 0) - (st.get("petScaleMax") or 0)) < 0.01,
+           f"{st.get('pet', {}).get('w')}x{st.get('pet', {}).get('h')} max={st.get('petScaleMax'):.2f}", "e2e")
+    coach_json("scale", "1.0")
+
+    coach_json("say", "气泡尺寸测试", "--title", "尺寸")
+    coach_json("config", "--bubble-scale", "0.65")
+    st = status()
+    record("气泡直接输入百分比", abs((st.get("bubbleScale") or 0) - 0.65) < 0.01
+           and st.get("bubbleManual") is False
+           and abs((st.get("bubble") or {}).get("w", 0) - 336 * 0.65) <= 2,
+           f"scale={st.get('bubbleScale')} w={st.get('bubble', {}).get('w')}", "e2e")
+    coach_json("config", "--bubble-width", "300", "--bubble-height", "44")
+    st = status()
+    record("气泡手动宽高", st.get("bubbleManual") is True
+           and abs((st.get("bubbleW") or 0) - 300) < 0.5
+           and abs((st.get("bubbleH") or 0) - 44) < 0.5
+           and abs((st.get("bubble") or {}).get("w", 0) - 300) <= 1,
+           f"{st.get('bubble', {}).get('w')}x{st.get('bubble', {}).get('h')}", "e2e")
+    coach_json("config", "--bubble-width", "10", "--bubble-height", "1")
+    st = status()
+    record("气泡宽高安全下限", abs((st.get("bubbleW") or 0) - 180) < 0.5
+           and abs((st.get("bubbleH") or 0) - 40) < 0.5,
+           f"{st.get('bubbleW')}x{st.get('bubbleH')}", "e2e")
+    coach_json("config", "--bubble-scale", "0.01")
+    record("气泡最小 40%", abs((status().get("bubbleScale") or 0) - 0.4) < 0.01, "", "e2e")
+    coach_json("config", "--bubble-auto")
+    st = status()
+    record("气泡恢复自动 100%", st.get("bubbleManual") is False
+           and abs((st.get("bubbleScale") or 0) - 1.0) < 0.01, "", "e2e")
+
     coach_json("guide", "--title", "取消测试", "--step", "一", "--step", "二")
     coach_json("cancel")
     record("cancel 清理任务", status().get("session") is None, "", "e2e")
+
+    # 指引模式总开关：关闭后清空任务/指针、拒绝新任务与指针，重启仍保持
+    coach_json("guide", "--title", "开关测试", "--step", "一", "--step", "二")
+    coach_json("point", "--x", "900", "--y", "500")
+    st = status()
+    record("关闭指引前有任务和指针", st.get("session") is not None and st.get("pointer") is True,
+           f"session={bool(st.get('session'))}, pointer={st.get('pointer')}", "e2e")
+    off = coach_json("config", "--guide", "off")
+    record("关闭指引清空任务和指针", off.get("guideEnabled") is False
+           and off.get("session") is None and off.get("pointer") is False,
+           f"guideEnabled={off.get('guideEnabled')}, session={off.get('session')}, pointer={off.get('pointer')}", "e2e")
+    time.sleep(0.25)
+    st = status()
+    record("关闭指引回到空闲动画", st.get("clip") == "idle" and st.get("guideActive") is False,
+           f"clip={st.get('clip')}, guideActive={st.get('guideActive')}", "e2e")
+    h = coach_json("hello", "--agent", "audit-off")
+    record("关闭指引时 hello 会告知 Agent", h.get("guideEnabled") is False and h.get("agent") == "audit-off",
+           f"guideEnabled={h.get('guideEnabled')}", "e2e")
+    p = coach("guide", "--title", "应被拒绝", "--step", "一")
+    record("关闭指引后拒绝 guide", p.returncode == 1 and "指引模式" in (p.stderr + p.stdout),
+           (p.stderr or p.stdout).strip()[:80], "e2e")
+    p = coach("point", "--x", "900", "--y", "500")
+    record("关闭指引后拒绝 point", p.returncode == 1 and "指引模式" in (p.stderr + p.stdout),
+           (p.stderr or p.stdout).strip()[:80], "e2e")
+    p = coach("demo")
+    record("关闭指引后拒绝三步演示", p.returncode == 1 and "指引模式" in (p.stderr + p.stdout),
+           (p.stderr or p.stdout).strip()[:80], "e2e")
+
+    coach("stop", timeout=10)
+    coach("start", timeout=20)
+    st = status()
+    record("指引关闭跨重启保持", st.get("guideEnabled") is False and st.get("session") is None,
+           f"guideEnabled={st.get('guideEnabled')}, session={st.get('session')}", "e2e")
+    coach_json("config", "--guide", "on")
+    st = status()
+    record("重新开启指引不恢复旧任务", st.get("guideEnabled") is True and st.get("session") is None,
+           f"guideEnabled={st.get('guideEnabled')}, session={st.get('session')}", "e2e")
+    coach_json("guide", "--title", "恢复指导", "--step", "一")
+    record("开启后 guide 恢复", (status().get("session") or {}).get("title") == "恢复指导", "", "e2e")
+    coach_json("cancel")
 
     p = coach("guide", "--title", "无步骤")
     record("guide 缺步骤时报错", p.returncode == 1 and "至少" in (p.stderr + p.stdout), p.stderr.strip()[:80], "e2e")
@@ -420,6 +498,31 @@ def check_music_interactions() -> None:
     coach_json("show")
     coach_json("hello", "--agent", "audit-music")
 
+    probe = r'''
+import json, sys, time
+sys.path.insert(0, %r)
+import dafeiyu_music as m
+class P:
+    returncode = 0
+    stderr = ""
+    stdout = json.dumps({
+        "title": "探针", "artist": "测试", "album": "", "playing": True,
+        "playbackRate": 1, "elapsedTimeMicros": 0,
+        "timestampEpochMicros": int((time.time() - 8.0) * 1000000),
+        "durationMicros": 200000000, "bundleIdentifier": "test",
+    })
+m.run = lambda *a, **k: P()
+t = m.now_playing_macos()
+print(json.dumps({"elapsed": t["elapsed"], "source": t["source"]}))
+''' % str(music_bin.parent)
+    p = run([sys.executable, "-c", probe], env=env, timeout=10)
+    try:
+        probe_out = json.loads(p.stdout.strip().splitlines()[-1])
+    except Exception:
+        probe_out = {}
+    record("MediaRemote 用 timestamp 补播放位置", abs(float(probe_out.get("elapsed") or 0) - 8.0) < 0.6,
+           f"elapsed={probe_out.get('elapsed')}", "music")
+
     p = run([sys.executable, str(music_bin), "test", "--line", "海风轻轻吹过"], env=env, timeout=15)
     st = status()
     record("music test 推送唱歌", p.returncode == 0 and st.get("singing") is True and st.get("lyric") == "海风轻轻吹过",
@@ -436,6 +539,16 @@ def check_music_interactions() -> None:
     run([sys.executable, str(music_bin), "off"], env=env, timeout=10)
     record("music off 收起", status().get("singing") is False, "", "music")
 
+    # 暂停时 0.1s tick 不能误走歌词心跳，否则会凭空点亮“跟着哼”
+    env_pause = {**env, "DAFEIYU_NOWPLAYING_JSON": json.dumps(
+        {"title": "暂停测试", "artist": "测试歌手", "duration": 10, "elapsed": 5, "playing": False},
+        ensure_ascii=False)}
+    p = run([sys.executable, str(music_bin), "watch", "--limit", "2.2", "--interval", "0.4", "--no-network"],
+            env=env_pause, timeout=10)
+    st = status()
+    record("暂停时不误推空歌词", p.returncode == 0 and st.get("singing") is False and not st.get("lyric"),
+           f"singing={st.get('singing')} lyric={st.get('lyric')!r}", "music")
+
     local = temp_root / ".dafeiyu/lyrics/local"
     local.mkdir(parents=True, exist_ok=True)
     (local / "测试歌 - 测试歌手.lrc").write_text(
@@ -447,6 +560,19 @@ def check_music_interactions() -> None:
             env=env2, timeout=15)
     st = status()
     record("本地 LRC + watcher 推送当前行", p.returncode == 0 and st.get("lyric") == "第二句",
+           f"lyric={st.get('lyric')}", "music")
+    run([sys.executable, str(music_bin), "off"], env=env, timeout=10)
+
+    # 旧实现把 MediaRemote 的 elapsedTime 当“现在”，位置永远停在 0，第一句不动。
+    # 这里用一个从 0 开始、随时间前进的假播放器，要求歌词在 5 秒内走到第三句。
+    env3 = {**env, "DAFEIYU_NOWPLAYING_JSON": json.dumps(
+        {"title": "测试歌", "artist": "测试歌手", "duration": 10,
+         "elapsedAnchor": 0, "timestamp": time.time(), "playbackRate": 1, "playing": True},
+        ensure_ascii=False), "DAFEIYU_LYRICS_DIR": str(local)}
+    p = run([sys.executable, str(music_bin), "watch", "--limit", "5.2", "--interval", "0.4", "--no-network"],
+            env=env3, timeout=15)
+    st = status()
+    record("歌词按播放位置逐句推进", p.returncode == 0 and st.get("lyric") == "第三句",
            f"lyric={st.get('lyric')}", "music")
     run([sys.executable, str(music_bin), "off"], env=env, timeout=10)
 
@@ -629,7 +755,7 @@ def check_docs() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").exists() else ""
     need = ["安装", "Agent", "MCP", "性能", "架构", "审计", "许可"]
     missing = [k for k in need if k not in readme]
-    record("README 完整", bool(readme) and "1.1.0" in readme and "音乐与唱歌" in readme and not missing, "缺 " + ",".join(missing) if missing else f"{len(readme)} 字符", "docs")
+    record("README 完整", bool(readme) and "1.2.0" in readme and "音乐与唱歌" in readme and not missing, "缺 " + ",".join(missing) if missing else f"{len(readme)} 字符", "docs")
     for name, path in [
         ("LICENSE", ROOT / "LICENSE"), ("NOTICE", ROOT / "NOTICE.md"),
         ("CHANGELOG", ROOT / "CHANGELOG.md"), ("ARCHITECTURE", ROOT / "docs/ARCHITECTURE.md"),
@@ -692,7 +818,21 @@ def capture(path: Path, pet, bubble, target_pt, scale, expect_ring=True) -> bool
         x1, y1 = min(W, x + w + 8), min(H, y + h + 8)
         blurred.paste(img.crop((x0, y0, x1, y1)), (x0, y0))
     blurred = blurred.resize((W // 2, H // 2), Image.LANCZOS)
-    blurred.save(path, "PNG", optimize=True)
+    # 先写本地再复制：项目在 iCloud Drive 时，PIL 直接写云盘偶尔会 Errno 60。
+    tmp = Path(tempfile.gettempdir()) / ("dafeiyu-shot-" + path.name)
+    blurred.save(tmp, "PNG")
+    for attempt in range(4):
+        try:
+            shutil.copyfile(tmp, path)
+            break
+        except OSError:
+            if attempt == 3:
+                raise
+            time.sleep(0.6 * (attempt + 1))
+    try:
+        tmp.unlink()
+    except OSError:
+        pass
     return ok
 
 

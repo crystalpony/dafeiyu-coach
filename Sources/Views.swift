@@ -509,11 +509,12 @@ final class BubbleView: NSView {
         ctx.restoreGraphicsState()
     }
 
-    /// 唱歌时贴在头顶的窄歌词条：最多两行，一句歌词一行，不占桌面。
+    /// 唱歌时贴在头顶的窄歌词条：歌名小字 + 当前句一行；宽高都随手动尺寸自适应。
     private func drawMusicBar() {
-        let W = baseSize.width, H = baseSize.height
+        let W = max(120, baseSize.width), H = max(32, baseSize.height)
         let bodyRect = NSRect(x: 2, y: 2, width: W - 4, height: H - 12)
-        let path = NSBezierPath(roundedRect: bodyRect, xRadius: 14, yRadius: 14)
+        let radius = min(14, max(8, bodyRect.height * 0.28))
+        let path = NSBezierPath(roundedRect: bodyRect, xRadius: radius, yRadius: radius)
         NSColor(calibratedWhite: 1.0, alpha: 0.97).setFill()
         path.fill()
         tone.accent.withAlphaComponent(0.78).setStroke()
@@ -521,11 +522,12 @@ final class BubbleView: NSView {
         path.stroke()
 
         // 指向头顶的小尾巴
-        if tailAtBottom {
+        if tailAtBottom && H >= 36 {
+            let tw = min(7, bodyRect.height * 0.16)
             let tail = NSBezierPath()
-            tail.move(to: NSPoint(x: W / 2 - 7, y: bodyRect.maxY - 1))
+            tail.move(to: NSPoint(x: W / 2 - tw, y: bodyRect.maxY - 1))
             tail.line(to: NSPoint(x: W / 2, y: H - 1))
-            tail.line(to: NSPoint(x: W / 2 + 7, y: bodyRect.maxY - 1))
+            tail.line(to: NSPoint(x: W / 2 + tw, y: bodyRect.maxY - 1))
             tail.close()
             NSColor(calibratedWhite: 1.0, alpha: 0.97).setFill()
             tail.fill()
@@ -534,52 +536,75 @@ final class BubbleView: NSView {
             tail.stroke()
         }
 
-        // ♪ 徽标
-        let badgeRect = NSRect(x: 12, y: 13, width: 24, height: 24)
+        // ♪ 徽标（随高度缩放）
+        let badgeD = min(26, max(14, bodyRect.height * 0.46))
+        let badgeRect = NSRect(x: 10, y: bodyRect.midY - badgeD / 2, width: badgeD, height: badgeD)
         tone.accent.withAlphaComponent(0.14).setFill()
         NSBezierPath(ovalIn: badgeRect).fill()
         let noteAttrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 14, weight: .bold),
+            .font: NSFont.systemFont(ofSize: badgeD * 0.58, weight: .bold),
             .foregroundColor: tone.accent
         ]
         let note = NSAttributedString(string: "♪", attributes: noteAttrs)
         let ns = note.size()
-        note.draw(at: NSPoint(x: badgeRect.midX - ns.width / 2, y: badgeRect.midY - ns.height / 2))
+        note.draw(at: NSPoint(x: badgeRect.midX - ns.width / 2,
+                              y: badgeRect.midY - ns.height / 2))
 
-        let textX: CGFloat = 44
-        let rightPad: CGFloat = 12
-        let titleW = W - textX - rightPad
+        let textX = badgeRect.maxX + 8
+        let rightPad: CGFloat = 10
+        let titleW = max(20, W - textX - rightPad)
+        let showTitle = !title.isEmpty && bodyRect.height >= 38
 
         // 歌曲名（小字、单行截断）
-        if !title.isEmpty {
+        var titleH: CGFloat = 0
+        if showTitle {
             let p = NSMutableParagraphStyle()
             p.lineBreakMode = .byTruncatingTail
+            let fs = min(11, max(8.5, bodyRect.height * 0.24))
             let attrs: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
+                .font: NSFont.systemFont(ofSize: fs, weight: .medium),
                 .foregroundColor: NSColor(calibratedWhite: 0.48, alpha: 1),
                 .paragraphStyle: p
             ]
-            NSAttributedString(string: title.replacingOccurrences(of: "\n", with: " "), attributes: attrs)
-                .draw(in: NSRect(x: textX, y: 9, width: titleW, height: 14))
+            let s = NSAttributedString(string: title.replacingOccurrences(of: "\n", with: " "),
+                                       attributes: attrs)
+            titleH = ceil(s.size().height)
+            titleH = min(titleH, bodyRect.height * 0.32)
         }
 
         // 当前歌词（单行，超长自动省略）
         let p = NSMutableParagraphStyle()
         p.lineBreakMode = .byTruncatingTail
+        let lyricFS = min(18, max(11, bodyRect.height * 0.36))
         let lyricAttrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 14, weight: .semibold),
+            .font: NSFont.systemFont(ofSize: lyricFS, weight: .semibold),
             .foregroundColor: tone.ink,
             .paragraphStyle: p
         ]
         let line = (text.isEmpty ? "♪ 跟着哼" : text).replacingOccurrences(of: "\n", with: " ")
-        NSAttributedString(string: line, attributes: lyricAttrs)
-            .draw(in: NSRect(x: textX, y: 25, width: titleW, height: 20))
+        let lyric = NSAttributedString(string: line, attributes: lyricAttrs)
+        let lyricH = min(ceil(lyric.size().height), bodyRect.height - titleH - (showTitle ? 3 : 0))
+
+        let blockH = titleH + (showTitle ? 3 : 0) + max(0, lyricH)
+        let top = bodyRect.minY + max(1, (bodyRect.height - blockH) / 2)
+        if showTitle {
+            let titleAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: min(11, max(8.5, bodyRect.height * 0.24)), weight: .medium),
+                .foregroundColor: NSColor(calibratedWhite: 0.48, alpha: 1),
+                .paragraphStyle: p
+            ]
+            NSAttributedString(string: title.replacingOccurrences(of: "\n", with: " "),
+                               attributes: titleAttrs)
+                .draw(in: NSRect(x: textX, y: top, width: titleW, height: titleH + 2))
+        }
+        lyric.draw(in: NSRect(x: textX, y: top + titleH + (showTitle ? 3 : 0),
+                              width: titleW, height: max(0, lyricH) + 2))
     }
 
     static func measure(title: String, text: String, subtext: String = "", badge: String, total: Int,
-                        music: Bool = false) -> NSSize {
-        if music { return NSSize(width: 316, height: 62) }
-        let width: CGFloat = 336
+                        music: Bool = false, width requestedWidth: CGFloat = 336) -> NSSize {
+        if music { return NSSize(width: 280, height: 50) }
+        let width: CGFloat = max(180, requestedWidth)
         let textW = width - 11 - 30
         var h: CGFloat = 15
         if !badge.isEmpty { h += 16 }

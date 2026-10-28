@@ -34,7 +34,7 @@ if os.name == "nt":
         except Exception:
             pass
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 HOME = Path(os.environ.get("DAFEIYU_HOME", Path.home() / ".dafeiyu"))
 SOCKET = HOME / "coach.sock"
 PORT_FILE = HOME / "coach.port"
@@ -360,7 +360,8 @@ def cmd_status(args) -> int:
     uptime = st.get("uptime", 0)
     print(f"大肥鱼 Coach v{st.get('version')} 运行中 · pid {st.get('pid')} · 已运行 {uptime}s")
     print(f"桌宠：{'显示' if st.get('petVisible') else '隐藏'} · 气泡：{'显示' if st.get('bubbleVisible') else '隐藏'}"
-          f" · 安静模式：{'开' if st.get('quiet') else '关'}")
+          f" · 安静模式：{'开' if st.get('quiet') else '关'}"
+          f" · 指引模式：{'开' if st.get('guideEnabled', True) else '关'}")
     print(f"agent：{st.get('agent') or '未连接'} · 屏幕缩放 {st.get('mainScale')}x · 素材 {st.get('assets')}")
     s = st.get("session")
     if isinstance(s, dict):
@@ -368,6 +369,8 @@ def cmd_status(args) -> int:
               f" · 完成 {s.get('done')} · {'已完成' if s.get('finished') else '进行中'}")
         if s.get("text"):
             print(f"当前：{s['text']}")
+    elif not st.get("guideEnabled", True):
+        print("任务：无（指引模式已关闭）")
     else:
         print("任务：无（等待 Agent 召唤）")
     return 0
@@ -543,6 +546,8 @@ def cmd_config(args) -> int:
     payload = {"cmd": "config"}
     if args.playful:
         payload["playful"] = args.playful == "on"
+    if args.guide:
+        payload["guideEnabled"] = args.guide == "on"
     if args.quiet:
         payload["quiet"] = args.quiet == "on"
     if args.sing:
@@ -553,6 +558,13 @@ def cmd_config(args) -> int:
         payload["petScale"] = args.pet_scale
     if args.bubble_scale is not None:
         payload["bubbleScale"] = args.bubble_scale
+    if (args.bubble_width is None) != (args.bubble_height is None):
+        raise CoachError("--bubble-width 和 --bubble-height 要一起给")
+    if args.bubble_width is not None and args.bubble_height is not None:
+        payload["bubbleW"] = args.bubble_width
+        payload["bubbleH"] = args.bubble_height
+    if args.bubble_auto:
+        payload["bubbleAuto"] = True
     return emit(call(payload), args.json)
 
 
@@ -817,17 +829,21 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--minutes", type=float, default=0, help="会议模式持续分钟数")
     s.set_defaults(func=cmd_quiet)
 
-    s = sub.add_parser("scale", help="设置桌宠大小 0.7~1.6")
+    s = sub.add_parser("scale", help="设置桌宠大小（安全范围随屏幕，约 0.35~2.8）")
     s.add_argument("value", type=float)
     s.set_defaults(func=cmd_scale)
 
-    s = sub.add_parser("config", help="配置：互动/安静/唱歌/减少动态/大小")
+    s = sub.add_parser("config", help="配置：指引/互动/安静/唱歌/减少动态/大小")
+    s.add_argument("--guide", choices=["on", "off"], help="任务指导总开关；关闭会清空当前任务、指针并回到空闲")
     s.add_argument("--playful", choices=["on", "off"])
     s.add_argument("--quiet", choices=["on", "off"])
     s.add_argument("--sing", choices=["on", "off"])
     s.add_argument("--reduced-motion", choices=["on", "off"])
-    s.add_argument("--pet-scale", type=float)
-    s.add_argument("--bubble-scale", type=float)
+    s.add_argument("--pet-scale", type=float, help="桌宠比例，如 1.2")
+    s.add_argument("--bubble-scale", type=float, help="气泡比例，如 0.8；会退出手动宽高")
+    s.add_argument("--bubble-width", type=float, help="气泡手动宽度 pt（需同时给 --bubble-height）")
+    s.add_argument("--bubble-height", type=float, help="气泡手动高度 pt（需同时给 --bubble-width）")
+    s.add_argument("--bubble-auto", action="store_true", help="恢复气泡自动大小/100%%")
     s.set_defaults(func=cmd_config)
 
     s = sub.add_parser("stage", help="演示舞台：盖住其它应用，便于截图/录屏")

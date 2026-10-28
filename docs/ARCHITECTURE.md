@@ -51,7 +51,8 @@ Windows: media_smtc.ps1 (WinRT SMTC)
         │ get 歌名/歌手/专辑/时长/进度/播放状态
         ▼
 dafeiyu_music.py watch
-        │ 1s 轮询；歌曲变化时取歌词；按 elapsed 找当前行
+        │ 0.5s 刷新元数据；elapsedTime + timestamp + rate 定位；
+        │ 0.1s 本地插值推进当前行（不把缓存位置当“现在”）
         │ 歌词源：本地 .lrc → LRCLIB 缓存/在线 → 网易云兜底（可关）
         ▼
 JSONL: {"cmd":"music_start|lyric|music_stop", ...}
@@ -122,10 +123,11 @@ struct CoachSession { id, title, steps[], index, done[], agent, finished, update
 ```
 
 - `guide`：重置会话，`done` 全 false，`index=start`，展示当前步；有坐标则起指针，否则清指针。
+- `guideEnabled` 总闸：用户关闭指引模式时，`guide` / `point` / `demo` 直接返回错误；同时清空会话、指针和指导气泡，动画回到 idle。设置持久化到 `settings.json`。
 - `next`：标记当前 `done[index]=true`；若已是最后一步 → `finished=true`、`index=total`、success + 撒花；否则 `index+=1` 并展示。
 - `prev`：回退并清除该步的 done；已完成的会话回退会取消 finished。
 - `finish`：全部标记完成并庆祝；`cancel`：清空会话，回到待机。
-- 每次变化写 `session.json`；启动时只恢复未完成任务，已完成任务丢弃（避免每次开机弹旧气泡）。
+- 每次变化写 `session.json`；启动时只在指引模式开启且任务未完成时恢复，已完成任务丢弃（避免每次开机弹旧气泡）。
 
 ## 坐标
 
@@ -145,7 +147,8 @@ struct CoachSession { id, title, steps[], index, done[], agent, finished, update
 ## 气泡与指针
 
 - 普通气泡宽度 336 pt，按内容测高；整体鼠标穿透，仅右上角 24×24 的关闭按钮窗口可点。
-- 唱歌歌词条固定 316×62 pt，贴在鱼头顶居中（放不下则移到下方），只有歌名小字 + 当前句一行，单行截断，无关闭按钮；缩放上限 1.08×，不随气泡放大。
+- 唱歌歌词条默认 280×50 pt，贴在鱼头顶居中（放不下则移到下方），只有歌名小字 + 当前句一行，单行截断，无关闭按钮。字号/徽标随高度自适应；手动高度不足 38 pt 时只显示当前句。
+- 气泡尺寸两种模式：百分比（40% 起，整体缩放）或手动宽×高（pt，文字重排、对话气泡高度不足时自动抬高）。最大宽/高都不超过当前屏幕一半；桌宠最小 35%（约 74×61 pt，仍点得到），最大不超过半屏。
 - 普通气泡尾巴根据位置在左/右自动翻转；歌词条尾巴朝下指向鱼头；屏幕边缘 clamp。
 - 指针在目标过期（`hold`）或新任务无坐标时清除；标签贴边 clamp，必要时移到圆环下方。
 - 气泡关闭只是 `bubbleUserHidden`，下一条内容会重新展开；桌宠上保留「…」提示。
@@ -166,7 +169,7 @@ struct CoachSession { id, title, steps[], index, done[], agent, finished, update
 
 ## 性能取舍
 
-- universal 单二进制约 1.1 MB，不引入 SwiftPM 依赖；素材 7.48 MB（15 组 / 890 帧）+ BSD 音乐适配器 669 KB。
+- universal 单二进制约 1.2 MB，不引入 SwiftPM 依赖；素材 7.48 MB（15 组 / 890 帧）+ BSD 音乐适配器 669 KB。
 - 待机 24 Hz 定时器 + 12 fps 换帧；指针激活时才 24 Hz 重绘全屏透明层。
 - 70–82 MB RSS 主要来自 AppKit 窗口/图层与已解码帧缓存；不是帧全量常驻。
 - 冷启动 0.30 s（AppKit + 首帧预取 3 帧）。

@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "passed": 134,
-  "total": 134,
+  "passed": 154,
+  "total": 154,
   "groups": {
     "static": [
       11,
@@ -16,12 +16,12 @@
       21
     ],
     "e2e": [
-      28,
-      28
+      45,
+      45
     ],
     "music": [
-      6,
-      6
+      9,
+      9
     ],
     "interaction": [
       4,
@@ -64,13 +64,13 @@
     {
       "name": "swiftc -warnings-as-errors 编译",
       "ok": true,
-      "detail": "10 个源文件",
+      "detail": "11 个源文件",
       "group": "static"
     },
     {
       "name": "构建产物存在",
       "ok": true,
-      "detail": "1120 KB",
+      "detail": "1190 KB",
       "group": "static"
     },
     {
@@ -106,7 +106,7 @@
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1086 行",
+      "detail": "Controller.swift 1073 行",
       "group": "static"
     },
     {
@@ -130,7 +130,7 @@
     {
       "name": "二进制 < 2 MB",
       "ok": true,
-      "detail": "1120 KB",
+      "detail": "1190 KB",
       "group": "size"
     },
     {
@@ -148,25 +148,25 @@
     {
       "name": "运行体总计 < 10 MB",
       "ok": true,
-      "detail": "9.23 MB",
+      "detail": "9.30 MB",
       "group": "size"
     },
     {
       "name": "源码 < 200 KB",
       "ok": true,
-      "detail": "123 KB",
+      "detail": "142 KB",
       "group": "size"
     },
     {
       "name": "安装脚本",
       "ok": true,
-      "detail": "  卸载：/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/scripts/uninstall.sh（--purge 连数据一起删）",
+      "detail": "  卸载：/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/scripts/uninstall.sh（--purge 连数据一起删）",
       "group": "install"
     },
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-y714o8u3/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-x_dy_vyn/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -214,25 +214,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5266 字符",
+      "detail": "5522 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5266 字符",
+      "detail": "5522 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5266 字符",
+      "detail": "5522 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5266 字符",
+      "detail": "5522 字符",
       "group": "install"
     },
     {
@@ -286,7 +286,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 25737",
+      "detail": "pid 48067",
       "group": "e2e"
     },
     {
@@ -392,7 +392,109 @@
       "group": "e2e"
     },
     {
+      "name": "桌宠最小 35% 仍可点击",
+      "ok": true,
+      "detail": "74x61",
+      "group": "e2e"
+    },
+    {
+      "name": "桌宠最大不超过半屏",
+      "ok": true,
+      "detail": "595x496 max=2.83",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡直接输入百分比",
+      "ok": true,
+      "detail": "scale=0.65 w=219",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡手动宽高",
+      "ok": true,
+      "detail": "300x83",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡宽高安全下限",
+      "ok": true,
+      "detail": "180x40",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡最小 40%",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "气泡恢复自动 100%",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
       "name": "cancel 清理任务",
+      "ok": true,
+      "detail": "",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引前有任务和指针",
+      "ok": true,
+      "detail": "session=True, pointer=True",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引清空任务和指针",
+      "ok": true,
+      "detail": "guideEnabled=False, session=None, pointer=False",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引回到空闲动画",
+      "ok": true,
+      "detail": "clip=idle, guideActive=False",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引时 hello 会告知 Agent",
+      "ok": true,
+      "detail": "guideEnabled=False",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引后拒绝 guide",
+      "ok": true,
+      "detail": "错误：指引模式已被用户关闭；要恢复请在大肥鱼菜单里勾选「任务指导（指引模式）」",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引后拒绝 point",
+      "ok": true,
+      "detail": "错误：指引模式已被用户关闭；要恢复请在大肥鱼菜单里勾选「任务指导（指引模式）」",
+      "group": "e2e"
+    },
+    {
+      "name": "关闭指引后拒绝三步演示",
+      "ok": true,
+      "detail": "错误：指引模式已被用户关闭；要恢复请在大肥鱼菜单里勾选「任务指导（指引模式）」",
+      "group": "e2e"
+    },
+    {
+      "name": "指引关闭跨重启保持",
+      "ok": true,
+      "detail": "guideEnabled=False, session=None",
+      "group": "e2e"
+    },
+    {
+      "name": "重新开启指引不恢复旧任务",
+      "ok": true,
+      "detail": "guideEnabled=True, session=None",
+      "group": "e2e"
+    },
+    {
+      "name": "开启后 guide 恢复",
       "ok": true,
       "detail": "",
       "group": "e2e"
@@ -436,13 +538,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 25803",
+      "detail": "旧 pid 48204",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'D0EBDD58-E5CB-4F41-B2E2-2293C2C2E1FC', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'F05D35D9-FD91-4953-9E0C-7F9F5235F3A3', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -450,6 +552,12 @@
       "ok": true,
       "detail": "0o600",
       "group": "e2e"
+    },
+    {
+      "name": "MediaRemote 用 timestamp 补播放位置",
+      "ok": true,
+      "detail": "elapsed=8.000179052352905",
+      "group": "music"
     },
     {
       "name": "music test 推送唱歌",
@@ -472,7 +580,7 @@
     {
       "name": "歌词条贴头顶且紧凑",
       "ok": true,
-      "detail": "316x62 @ 495 < 563",
+      "detail": "280x50 @ 507 < 563",
       "group": "music"
     },
     {
@@ -482,9 +590,21 @@
       "group": "music"
     },
     {
+      "name": "暂停时不误推空歌词",
+      "ok": true,
+      "detail": "singing=False lyric=''",
+      "group": "music"
+    },
+    {
       "name": "本地 LRC + watcher 推送当前行",
       "ok": true,
       "detail": "lyric=第二句",
+      "group": "music"
+    },
+    {
+      "name": "歌词按播放位置逐句推进",
+      "ok": true,
+      "detail": "lyric=第三句",
       "group": "music"
     },
     {
@@ -514,13 +634,13 @@
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.22248671884881333",
+      "detail": "blend=0.18273020832566544",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 64612, \"token\": \"c4125825517eb866ec53e1092cb64c27\", \"pid\": 25874}",
+      "detail": "{\"port\": 60210, \"token\": \"e4d7b0fb77c446096e59500346371af9\", \"pid\": 48308}",
       "group": "tui"
     },
     {
@@ -550,7 +670,7 @@
     {
       "name": "initialize 握手",
       "ok": true,
-      "detail": "{'name': 'dafeiyu-coach', 'version': '1.1.0'}",
+      "detail": "{'name': 'dafeiyu-coach', 'version': '1.2.0'}",
       "group": "mcp"
     },
     {
@@ -568,7 +688,7 @@
     {
       "name": "MCP begin 调用",
       "ok": true,
-      "detail": "{\"agent\": \"mcp-audit\", \"message\": \"connected\", \"ok\": true}",
+      "detail": "{\"agent\": \"mcp-audit\", \"guideEnabled\": true, \"message\": \"connected\", \"ok\": true}",
       "group": "mcp"
     },
     {
@@ -610,37 +730,37 @@
     {
       "name": "冷启动 < 4s",
       "ok": true,
-      "detail": "0.31s",
+      "detail": "0.30s",
       "group": "perf"
     },
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.7%",
+      "detail": "3.6%",
       "group": "perf"
     },
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "72 MB",
+      "detail": "71 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "7.5%",
+      "detail": "7.4%",
       "group": "perf"
     },
     {
       "name": "动画+指针 RSS < 160 MB",
       "ok": true,
-      "detail": "82 MB",
+      "detail": "80 MB",
       "group": "perf"
     },
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.7% / 72MB · active 7.5% / 82MB",
+      "detail": "idle 3.6% / 71MB · active 7.4% / 80MB",
       "group": "perf"
     },
     {
@@ -670,7 +790,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "12183 字符",
+      "detail": "12700 字符",
       "group": "docs"
     },
     {
@@ -766,85 +886,85 @@
     {
       "name": "证据 01：指针 + 气泡 + 步骤",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/01-guide.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/01-guide.png",
       "group": "visual"
     },
     {
       "name": "证据 02：完成庆祝（绿框/彩纸）",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/02-success.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/02-success.png",
       "group": "visual"
     },
     {
       "name": "证据 03：待机陪伴台词",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/03-companion.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/03-companion.png",
       "group": "visual"
     },
     {
       "name": "证据 04：歌词 + 唱歌",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/04-music.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/04-music.png",
       "group": "visual"
     },
     {
       "name": "证据 05：米饭 + 饭碗",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/05-rice.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/05-rice.png",
       "group": "visual"
     },
     {
       "name": "证据 06：终端版渲染",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/tui-sample.txt",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/tui-sample.txt",
       "group": "visual"
     },
     {
       "name": "证据 07：Windows GUI（CI 冒烟截图）",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/06-windows-gui.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/06-windows-gui.png",
       "group": "visual"
     },
     {
       "name": "证据 08：Windows GUI 歌词唱歌（CI）",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/07-windows-music.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/07-windows-music.png",
       "group": "visual"
     },
     {
       "name": "证据 09：QQ 音乐真机唱歌",
       "ok": true,
-      "detail": "/Users/xiajiaju/Desktop/qoder-coach/DesktopFishCoach/audit/screenshots/08-qq-music.png",
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/08-qq-music.png",
       "group": "visual"
     },
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "306 KB",
+      "detail": "321 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "302 KB",
+      "detail": "326 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "298 KB",
+      "detail": "306 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "292 KB",
+      "detail": "308 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
-      "detail": "292 KB",
+      "detail": "311 KB",
       "group": "visual"
     },
     {
@@ -866,5 +986,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-27T23:12:07"
+  "at": "2026-10-28T11:46:30"
 }

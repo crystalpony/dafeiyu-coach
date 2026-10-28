@@ -40,6 +40,7 @@ dafeiyu music offset 0.4             # 歌词对不上时微调
 - 歌词来自系统 Now Playing + LRCLIB/本地 LRC；中文歌缺失时可选网易云兜底（`music provider lrclib` 可关闭）。只发送歌名/歌手/时长，不读音频、不录音。
 - 没有歌词就显示“跟着哼”，不要编造歌词。
 - 用户说“安静点/在开会” → `dafeiyu quiet on --minutes 60`（会议模式），或菜单「会议模式 60 分钟」。
+- 用户说“别指了 / 关掉指导 / 不用你带我” → `dafeiyu config --guide off`，等同菜单里取消勾选「任务指导（指引模式）」：当前任务、指针和指导气泡会立刻清空，桌宠回待机。之后 `guide` / `point` 会被拒绝，不要绕过；用户明确要恢复时再 `config --guide on`。
 - 视觉唱歌（气泡+摇摆+音符），不播放 TTS 音频。
 
 ## 黄金流程（带用户做一件事）
@@ -157,6 +158,7 @@ dafeiyu tui --once          # 只渲染一帧（CI/验收）
 | `连不上大肥鱼守护进程` | `dafeiyu doctor`；`dafeiyu start`；看 `~/.dafeiyu/coach.log` |
 | 指针位置偏 | 确认单位（pt/px/norm）与主屏 scale；`dafeiyu info` |
 | 气泡被用户收起 | 下一条 `say/guide/next` 会自动展开；也可 `dafeiyu show` |
+| `guide` 报「指引模式已被用户关闭」 | 用户在菜单关了任务指导；不要重试或绕过，等用户自己打开，或征得同意后 `dafeiyu config --guide on` |
 | 桌宠不见了 | `dafeiyu show`；或点屏幕上的“鱼”小圆点 |
 | 动画不动 | 检查 `dafeiyu status` 是否 `sleeping`；任意命令会唤醒 |
 | 想彻底退出 | `dafeiyu stop`（会移除 socket、保留设置） |

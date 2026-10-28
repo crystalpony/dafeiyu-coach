@@ -4,7 +4,7 @@ import Foundation
 // MARK: - 版本与路径
 
 let kAppName = "桌面大肥鱼 Coach"
-let kVersion = "1.1.0"
+let kVersion = "1.2.0"
 let kProtocol = 1
 
 struct Paths {
@@ -104,6 +104,9 @@ enum ScreenSpace {
 struct CoachSettings: Codable {
     var petScale: Double = 1.0
     var bubbleScale: Double = 1.0
+    // 手动气泡宽高（pt）；两个都有值时优先于 bubbleScale。用 Optional 保证旧配置能继续解码。
+    var bubbleW: Double? = nil
+    var bubbleH: Double? = nil
     var petX: Double? = nil
     var petY: Double? = nil
     var quiet: Bool = false
@@ -114,6 +117,8 @@ struct CoachSettings: Codable {
     var sing: Bool? = true
     var riceCount: Int? = 0
     var reducedMotion: Bool? = false
+    // 用户主动关闭任务指导后，agent 不能再建任务或画指针；默认开启，旧配置缺省也按开启处理。
+    var guideEnabled: Bool? = true
 }
 
 func loadSettings() -> CoachSettings {
@@ -196,6 +201,16 @@ struct ClipManifest: Codable {
     }
 }
 
+// 指引模式的总闸：用户关掉后，任何任务/指针入口都要先过这里。
+enum GuideGate {
+    static let menuTitle = "任务指导（指引模式）"
+    static let disabledMessage = "指引模式已被用户关闭；要恢复请在大肥鱼菜单里勾选「任务指导（指引模式）」"
+
+    static func allows(_ settings: CoachSettings) -> Bool {
+        settings.guideEnabled ?? true
+    }
+}
+
 // 气泡与步骤的纯逻辑，`--selftest` 会直接验证这些函数。
 enum StepLogic {
     static func advance(_ s: inout CoachSession) -> Bool {
@@ -252,6 +267,13 @@ func runSelfTest(manifest: ClipManifest?) -> Int32 {
     StepLogic.rewind(&s3)
     expect(s3.index == 0 && s3.done[0] == false, "rewind")
     expect(StepLogic.completedCount(s3) == 0, "completed count")
+
+    var guideSettings = CoachSettings()
+    expect(GuideGate.allows(guideSettings), "guide default on")
+    guideSettings.guideEnabled = false
+    expect(!GuideGate.allows(guideSettings), "guide off blocks")
+    guideSettings.guideEnabled = nil
+    expect(GuideGate.allows(guideSettings), "guide legacy default on")
 
     expect(Quips.isMeetingApp("Zoom"), "meeting app zoom")
     expect(Quips.isMeetingApp("腾讯会议"), "meeting app tencent")

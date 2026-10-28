@@ -36,7 +36,7 @@ if os.name == "nt":
         except Exception:
             pass
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 HOME = Path(os.environ.get("DAFEIYU_HOME", str(Path.home() / ".dafeiyu")))
 SOCKET = HOME / "coach.sock"
 PORT_FILE = HOME / "coach.port"

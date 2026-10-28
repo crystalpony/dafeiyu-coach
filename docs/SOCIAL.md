@@ -6,12 +6,12 @@
 
 仓库已公开：<https://github.com/crystalpony/dafeiyu-coach>（MIT）
 
-Release：[v1.1.0](https://github.com/crystalpony/dafeiyu-coach/releases/tag/v1.1.0)
+Release：[v1.2.0](https://github.com/crystalpony/dafeiyu-coach/releases/tag/v1.2.0)
 Topics：`macos` `desktop-pet` `ai-agents` `mcp` `lyrics` `swift` `appkit` `terminal`
 
-Release 1.1.0 资产（已打包，附 SHA256）：
-- `dafeiyu-coach-1.1.0-macos.zip`（universal .app / 二进制 + Runtime）
-- `dafeiyu-coach-1.1.0-windows.zip`（桌面窗口版 + 终端版 + SMTC 脚本 + 安装 ps1）
+Release 1.2.0 资产（附 SHA256）：
+- `dafeiyu-coach-1.2.0-macos.zip`（universal .app / 二进制 + Runtime）
+- `dafeiyu-coach-1.2.0-windows.zip`（桌面窗口版 + 终端版 + SMTC 脚本 + 安装 ps1）
 - `SHA256SUMS`
 
 README 首屏：
