@@ -146,12 +146,19 @@
 13. **可视化（14）**：5 张 macOS 截图 + 终端渲染 + Windows GUI/歌词 CI 截图 + QQ 真机截图 + 非空检查。
 14. **卸载（3）**：移除二进制/skills/music/tui、保留设置、`--purge`。
 
-## 发布后验证（2026-10-27）
+## 发布后验证（v1.1.0，2026-10-27）
 
 - GitHub 仓库已 public，`v1.1.0` Release 已发布；tag 指向与源码/二进制一致的提交。
 - 从 Release 重新下载 macOS / Windows 两个 zip，`shasum -a 256 -c SHA256SUMS` 均为 `OK`。
 - Windows CI 对 GUI 冒烟做断言：普通冒烟必须结束在 `rice`，音乐冒烟必须使用 `sing`，并检查截图存在。
 - 打包后的 `.app` 在独立 HOME 中启动，读到 15 个 clip；`feed` → `rice`，歌词测试 → `sing` + 280×50 紧凑条；气泡宽高/百分比与安全边界可回归。
+
+## 发布后验证（v1.2.0，2026-10-28）
+
+- GitHub `v1.2.0` Release 已发布，tag 指向 `ca41416`（与源码提交一致）。
+- 从 Release 重新下载 macOS / Windows 两个 zip，`shasum -a 256 -c SHA256SUMS` 均为 `OK`。
+- 打包后的 `.app` 在独立 HOME 中启动：CLI 与 daemon 均报告 `1.2.0`，读到 15 组 clip；`feed` → `rice`；`guide` 建任务正常。
+- 全量审计 154/154；macOS + Windows CI 均通过（[run 40628650943](https://github.com/crystalpony/dafeiyu-coach/actions/runs/40628650943)）。
 
 ## 已知限制
 

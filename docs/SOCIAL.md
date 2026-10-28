@@ -75,6 +75,11 @@ README 首屏：
 - 不使用饥饿/惩罚机制。
 
 
+## 发布进度（2026-10-28）
+
+- GitHub：v1.2.0 Release 已发布（macOS/Windows/SHA256），tag `v1.2.0` 指向 `ca41416`；资产下载后 SHA 校验通过；macOS + Windows CI 均绿。
+- 小红书/抖音：仍沿用 1.1.0 的草稿内容，未发布；1.2.0 的新功能（指引开关、气泡直调）可补进下一版文案。
+
 ## 发布进度（2026-10-27）
 
 - GitHub：仓库已公开，v1.1.0 Release 已发布（macOS/Windows/SHA256）。
