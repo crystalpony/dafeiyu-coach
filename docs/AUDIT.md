@@ -49,6 +49,13 @@
 
 双平台ZIP各2882帧，CRC、外层SHA、清单与工作区逐帧内容一致、NOTICE均通过：[包校验](../audit/package-verification.json)、[SHA256SUMS](../dist/SHA256SUMS)。这里只发布本地dist产物，未公开发布。
 
+## 发布后验证（v1.4.0，2026-10-29）
+
+- GitHub `v1.4.0` Release 已公开发布：<https://github.com/crystalpony/dafeiyu-coach/releases/tag/v1.4.0>；标签指向提交 `17bb5be`，与 `main` 一致。
+- 从 Release 重新下载三份资产，`shasum -a 256 -c SHA256SUMS` 两个包均为 `OK`（macOS 36,703,099 字节 / Windows 35,543,133 字节）。
+- 下载的 macOS 包解压后 `codesign --verify --deep --strict` 通过；在独立临时 HOME 中 `dafeiyu-daemon --check` 返回 `ok=true`，大肥鱼 15 组 890 帧、小黑 25 组 1992 帧，缺失 0。
+- Release 说明明确写出未实现动作与“Windows 未真机验收”，没有把本地打包当作 Windows 通过。
+
 ## 证据与限制
 
 [嘴眼对照16](../audit/screenshots/16-xiaohei-face-evidence.png)与[尾巴对照17](../audit/screenshots/17-xiaohei-tail-evidence.png)来自实际WebP，不冒充屏幕截图。
