@@ -1,0 +1,58 @@
+{
+  "release": {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/crystalpony/dafeiyu-coach/releases/assets/687247107",
+        "contentType": "application/zip",
+        "createdAt": "2026-10-29T03:40:23Z",
+        "digest": "sha256:02ab4be30ca1a4df25813acb50700a0b538c617e538fbb6f6941a1fa4031b12a",
+        "downloadCount": 0,
+        "id": "RA_kwDOVZM74c4o9o8D",
+        "label": "",
+        "name": "dafeiyu-coach-1.4.0-macos.zip",
+        "size": 36703099,
+        "state": "uploaded",
+        "updatedAt": "2026-10-29T03:40:44Z",
+        "url": "https://github.com/crystalpony/dafeiyu-coach/releases/download/v1.4.0/dafeiyu-coach-1.4.0-macos.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/crystalpony/dafeiyu-coach/releases/assets/687247112",
+        "contentType": "application/zip",
+        "createdAt": "2026-10-29T03:40:23Z",
+        "digest": "sha256:cb485cd103f4a28a857bb7803b0ac4b3daf967f1f6f6dbe9f11ad79d98541e17",
+        "downloadCount": 0,
+        "id": "RA_kwDOVZM74c4o9o8I",
+        "label": "",
+        "name": "dafeiyu-coach-1.4.0-windows.zip",
+        "size": 35543133,
+        "state": "uploaded",
+        "updatedAt": "2026-10-29T03:40:44Z",
+        "url": "https://github.com/crystalpony/dafeiyu-coach/releases/download/v1.4.0/dafeiyu-coach-1.4.0-windows.zip"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/crystalpony/dafeiyu-coach/releases/assets/687247103",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-29T03:40:23Z",
+        "digest": "sha256:598894e0d0903a8c087a1b8492e6947d2841e275feec90003f63f1a73c2a7b93",
+        "downloadCount": 0,
+        "id": "RA_kwDOVZM74c4o9o7_",
+        "label": "",
+        "name": "SHA256SUMS",
+        "size": 194,
+        "state": "uploaded",
+        "updatedAt": "2026-10-29T03:40:23Z",
+        "url": "https://github.com/crystalpony/dafeiyu-coach/releases/download/v1.4.0/SHA256SUMS"
+      }
+    ],
+    "publishedAt": "2026-10-29T03:40:45Z",
+    "tagName": "v1.4.0",
+    "url": "https://github.com/crystalpony/dafeiyu-coach/releases/tag/v1.4.0"
+  },
+  "ci": [
+    "40813436745",
+    "40814274743"
+  ],
+  "shaCheck": "OK",
+  "macosSign": "OK",
+  "check": "OK"
+}
