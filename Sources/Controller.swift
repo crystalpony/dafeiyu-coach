@@ -5,8 +5,9 @@ enum BubbleKind { case none, coach, success, error, thinking, music }
 
 final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // 模型
-    let manifest: ClipManifest
-    let player: ClipPlayer
+    var manifest: ClipManifest
+    var player: ClipPlayer
+    var assetsRoot: URL
     var settings: CoachSettings
     var session: CoachSession?
     var startedAt = Date()
@@ -40,6 +41,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var lyricLine = ""
     var nextLyric = ""
     var musicLastUpdate: Date?
+    var singVariant = "sing"
+    var nextSingSwitchAt: Date?
     var focusUntil: Date?
     var quietUntil: Date?
     var lastNoteAt = Date.distantPast
@@ -70,10 +73,22 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: 初始化
 
-    init(manifest: ClipManifest) {
-        self.manifest = manifest
-        self.player = ClipPlayer(manifest: manifest)
-        self.settings = loadSettings()
+    init(manifest defaultManifest: ClipManifest) {
+        var st = loadSettings()
+        let wanted = st.character ?? "dafeiyu"
+        var chosen = defaultManifest
+        var root = Paths.assets
+        if wanted != "dafeiyu", let dir = Paths.characterAssets(wanted),
+           let m = ClipManifest.load(from: dir) {
+            chosen = m
+            root = dir
+        } else {
+            st.character = "dafeiyu"
+        }
+        self.settings = st
+        self.manifest = chosen
+        self.assetsRoot = root
+        self.player = ClipPlayer(manifest: chosen, assets: root)
         self.session = loadSession()
         super.init()
         clampSettings()
@@ -154,11 +169,6 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: 构建界面
 
-    func petSize() -> NSSize {
-        NSSize(width: round(petBase.width * CGFloat(settings.petScale)),
-               height: round(petBase.height * CGFloat(settings.petScale)))
-    }
-
     func buildPet() {
         let screen = ScreenSpace.mainScreen
         let size = petSize()
@@ -180,7 +190,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let v = PetView(frame: NSRect(origin: .zero, size: size))
         v.player = player
         v.onRegionClick = { [weak self] region in self?.handlePetClick(region) }
-        v.onDoubleClick = { [weak self] in self?.petDance() }
+        v.onDoubleClick = { [weak self] in self?.doubleClickAction() }
         v.onDragBegin = { [weak self] in
             guard let self else { return }
             self.wake()
@@ -381,6 +391,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         songArtist = ""
         lyricLine = ""
         nextLyric = ""
+        singVariant = "sing"
+        nextSingSwitchAt = nil
         petView.singing = false
         if bubbleKind == .music {
             bubbleContent = false
@@ -671,10 +683,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             lastNoteAt = Date()
             petView.spawnNote()
         }
+        updateSingRotation()
         // 被拖拽/一次性动作压住后，音乐还在就恢复唱歌（不抢正在播的高优先级动作）
         if singing, !petView.isDragging, pointerGlobal == nil, !player.busy,
-           player.currentPriority <= 85, player.resolvedName != "sing" {
-            player.play("sing", loop: true, autoIdle: true, transition: 0.20, priority: 85)
+           player.currentPriority <= 85, player.resolvedName != singVariant {
+            playSing(transition: 0.24)
         }
 
         if let g = glide {
@@ -733,10 +746,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             player.play("pat", loop: false, autoIdle: true)
             petView.burstHearts(count: 4)
             if guideEnabled {
-                showBubble(title: "大肥鱼在听", text: "我是大肥鱼。接下来我会一步一步说给你听；需要指哪里，我就游过去。",
+                showBubble(title: "\(manifest.displayName)在听", text: "我是\(manifest.displayName)。接下来我会一步一步说给你听；需要指哪里，我就\(manifest.character == "xiaohei" ? "跳" : "游")过去。",
                            badge: "\(agent) 已连接", tone: .coach, hold: 8)
             } else {
-                showBubble(title: "大肥鱼在听", text: "我在。不过指引模式关着，需要任务指导请先在菜单里打开。",
+                showBubble(title: "\(manifest.displayName)在听", text: "我在。不过指引模式关着，需要任务指导请先在菜单里打开。",
                            badge: "\(agent) 已连接 · 指引已关", tone: .coach, hold: 6)
             }
             logLine("hello agent=\(agent) guideEnabled=\(guideEnabled)")
@@ -847,10 +860,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 return ["ok": true, "suppressed": true]
             }
             wake()
-            singing = true
             musicLastUpdate = Date()
-            petView.singing = true
-            player.play("sing", loop: true, autoIdle: true, transition: 0.22, priority: 85)
+            startSinging()
             showBubble(title: songArtist.isEmpty ? songTitle : "\(songTitle) · \(songArtist)",
                        text: "准备开唱…", badge: "♪", tone: .music, kind: .music, hold: 0)
             return ["ok": true, "singing": true]
@@ -869,10 +880,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 return ["ok": true, "suppressed": true]
             }
             if !singing {
-                wake()
-                singing = true
-                petView.singing = true
-                player.play("sing", loop: true, autoIdle: true, transition: 0.22, priority: 85)
+                startSinging()
             }
             musicLastUpdate = Date()
             let total = (cmd["total"] as? Double).map { Int($0) } ?? 0
@@ -916,6 +924,19 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                            badge: (cmd["step"] as? String) ?? "", tone: bubbleTone(cmd["tone"] as? String), hold: (cmd["hold"] as? Double) ?? 0)
             }
             return ["ok": true, "clip": clip, "resolved": manifest.clips[actualResolved] != nil ? actualResolved : "idle"]
+
+        case "xiaohei_action":
+            return handleXiaoheiAction(cmd)
+
+        case "character":
+            if let id = cmd["name"] as? String, !id.isEmpty {
+                guard switchCharacter(id) else {
+                    return ["ok": false, "error": "没有这个形象：\(id)"]
+                }
+            }
+            var r = statusPayload()
+            r["ok"] = true
+            return r
 
         case "mood":
             let mood = (cmd["value"] as? String) ?? "idle"
@@ -964,7 +985,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if let v = cmd["bubbleOn"] as? Bool { settings.bubbleOn = v }
             if let v = cmd["petOn"] as? Bool { settings.petOn = v }
             if let v = cmd["sing"] as? Bool { settings.sing = v }
+            if let v = cmd["singStyle"] as? String { setSingStyle(v, announce: false) }
+            if let v = cmd["meowEnabled"] as? Bool { settings.meowEnabled = v }
+            if let v = cmd["meowSound"] as? Bool { settings.meowSound = v }
             if let v = cmd["reducedMotion"] as? Bool { settings.reducedMotion = v }
+            if let v = cmd["character"] as? String { _ = switchCharacter(v, announce: false) }
             saveSettings(settings)
             applyVisibility()
             return statusPayload()

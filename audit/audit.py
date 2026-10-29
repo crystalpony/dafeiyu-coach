@@ -136,6 +136,39 @@ def check_static() -> None:
         gui_ok = False
     record("桌面窗口版依赖/素材", gui_ok, (gui.stdout or gui.stderr).strip()[-120:], "static")
 
+    gui2 = run([sys.executable, str(ROOT / "bin/dafeiyu_gui.py"), "--check", "--character", "xiaohei"],
+               env=env_for_temp(), timeout=30)
+    try:
+        g2 = json.loads(gui2.stdout.splitlines()[-1])
+        gui2_ok = gui2.returncode == 0 and g2.get("ok") is True and g2.get("clips") >= 15
+        gui2_detail = f"{g2.get('character')} / {g2.get('clips')} 组 / {g2.get('assets')}"
+    except Exception:
+        gui2_ok = False
+        gui2_detail = (gui2.stdout or gui2.stderr).strip()[-120:]
+    record("桌面窗口版可加载小黑素材", gui2_ok, gui2_detail, "static")
+
+    qa = run([sys.executable, str(ROOT / "scripts/xiaohei_qa.py")], timeout=240)
+    try:
+        qd = json.loads(qa.stdout.strip().splitlines()[-1])
+        qa_ok = qa.returncode == 0 and qd.get("ok") is True and qd.get("clips", 0) >= 22
+        qa_detail = f"{qd.get('clips')} 段 / 抽查 {qd.get('checked')} 帧 / 最小上边距 {qd.get('min_top')}px"
+    except Exception:
+        qa_ok = False
+        qa_detail = (qa.stdout or qa.stderr).strip()[-160:]
+    record("小黑前肢/骨骼与新增动作 QA", qa_ok, qa_detail, "static")
+    deep = qd.get("deep", {}) if qa_ok else {}
+    record("小黑1992帧解码/边界/哈希", deep.get("decoded") == 1992 and not deep.get("errors"),
+           f"decoded={deep.get('decoded')} errors={deep.get('errors')}", "static")
+    record("小黑75帧源码重渲染一致", deep.get("rerendered") == 75 and not deep.get("errors"),
+           f"rerendered={deep.get('rerendered')}", "static")
+    record("小黑像素几何与双平台播放器回归", len(deep.get("suites", {})) == 2 and all(deep.get("suites", {}).values()),
+           str(deep.get("suites", {})), "static")
+    prune_test = run([sys.executable, str(ROOT / "tests/test_character_prune.py")], timeout=30)
+    record("冲突目录同名帧清理回归", prune_test.returncode == 0, (prune_test.stderr or prune_test.stdout).strip()[-150:], "static")
+    publish_test = run([sys.executable, str(ROOT / "tests/test_xiaohei_publish.py")], timeout=30)
+    record("帧发布异常恢复上一套产物", publish_test.returncode == 0,
+           (publish_test.stderr or publish_test.stdout).strip()[-150:], "static")
+
     p = run([str(BUILD), "--selftest"])
     record("内置单元自测（步骤/坐标/15 组素材）", p.returncode == 0, p.stdout.strip(), "static")
 
@@ -166,6 +199,35 @@ def check_static() -> None:
     record("米饭/唱歌独立剪辑", ok_rice and ok_sing,
            f"rice={rice.get('frameCount')} sing={sing.get('frameCount')}", "static")
 
+    xh_dir = ROOT / "Runtime/characters/xiaohei"
+    try:
+        xh = json.loads((xh_dir / "manifest.json").read_text())
+        xc = xh.get("clips") or {}
+        required = {"wash", "roll", "pounce", "fluff", "sleep", "meow", "heixiu",
+                    "sing", "sing_mic", "sing_hat", "sing_tail"}
+        manifest_files = {str((xh_dir / f).resolve()) for c in xc.values() for f in c.get("frames") or []}
+        disk_files = {str(p.resolve()) for p in xh_dir.rglob("*.webp")}
+        extras = disk_files - manifest_files
+        missing = manifest_files - disk_files
+        xh_ok = (xh.get("character") == "xiaohei" and len(xc) >= 25
+                 and required <= set(xc)
+                 and xh.get("frameSize") == [300, 250]
+                 and all(c.get("fps") == 24 for c in xc.values())
+                 and all(xc[k].get("frameCount") == 96 and xc[k].get("loop") is True
+                         for k in ("sing", "sing_mic", "sing_hat", "sing_tail"))
+                 and (ROOT / "Runtime/sounds/xiaohei_meow.wav").exists()
+                 and not extras and not missing)
+        xh_frames = sum(c.get("frameCount", 0) for c in xc.values())
+        record(f"小黑素材完整（{len(xc)} 组 / 24fps / 300×250）", xh_ok,
+               f"{len(xc)} 组 / {xh_frames} 帧 / 多余 {len(extras)} / 缺失 {len(missing)} / 喵叫音效 "
+               f"{(ROOT / 'Runtime/sounds/xiaohei_meow.wav').stat().st_size//1024 if (ROOT / 'Runtime/sounds/xiaohei_meow.wav').exists() else 0} KB",
+               "static")
+        record("小黑为原创同人绘制（无官方素材）",
+               "fan art" in xh.get("license", "") and "MTJJ" in json.dumps(xh, ensure_ascii=False),
+               xh.get("license", "")[:80], "static")
+    except Exception as exc:
+        record("小黑素材完整（25 组 / 24fps / 300×250）", False, str(exc)[:120], "static")
+
     try:
         from PIL import Image
         def bowl_ratio(rel: str) -> float:
@@ -189,10 +251,23 @@ def check_size() -> None:
     clips_size = sum(p.stat().st_size for p in (ROOT / "Runtime/clips").rglob("*") if p.is_file())
     record("二进制 < 2 MB", bin_size < 2 * 1024 * 1024, f"{bin_size/1024:.0f} KB", "size")
     record("动画素材 < 8 MB", clips_size < 8 * 1024 * 1024, f"{clips_size/1048576:.2f} MB / 890 帧", "size")
+    chars_dir = ROOT / "Runtime/characters"
+    chars_size = sum(p.stat().st_size for p in chars_dir.rglob("*") if p.is_file()) if chars_dir.exists() else 0
+    xh_frames = 0
+    try:
+        xm = json.loads((chars_dir / "xiaohei/manifest.json").read_text())
+        xh_frames = sum(c.get("frameCount", 0) for c in (xm.get("clips") or {}).values())
+    except Exception:
+        pass
+    record("小黑素材 < 32 MB", 0 < chars_size < 32 * 1024 * 1024,
+           f"{chars_size/1048576:.2f} MB / {xh_frames} 帧", "size")
     music_size = sum(p.stat().st_size for p in (ROOT / "Runtime/music").rglob("*") if p.is_file())
+    sounds_size = sum(p.stat().st_size for p in (ROOT / "Runtime/sounds").rglob("*") if p.is_file()) if (ROOT / "Runtime/sounds").exists() else 0
     record("音乐适配器 < 1 MB", music_size < 1024 * 1024, f"{music_size/1024:.0f} KB", "size")
-    total = bin_size + clips_size + music_size
+    total = bin_size + clips_size + music_size + sounds_size
     record("运行体总计 < 10 MB", total < 10 * 1024 * 1024, f"{total/1048576:.2f} MB", "size")
+    record("双形象总计 < 40 MB", total + chars_size < 40 * 1024 * 1024,
+           f"{(total + chars_size)/1048576:.2f} MB", "size")
     src_size = sum(p.stat().st_size for p in (ROOT / "Sources").glob("*.swift"))
     record("源码 < 200 KB", src_size < 200 * 1024, f"{src_size/1024:.0f} KB", "size")
 
@@ -201,13 +276,16 @@ def check_install() -> None:
     section("3. 安装 / 适配器（临时 HOME）")
     global cli_path
     assert temp_root
-    p = run([str(ROOT / "scripts/install.sh"), "--no-start", "--with-mcp"], env=env_for_temp(), timeout=120)
+    p = run([str(ROOT / "scripts/install.sh"), "--no-start", "--with-mcp"], env=env_for_temp(), timeout=300)
     record("安装脚本", p.returncode == 0, p.stdout.strip().splitlines()[-1] if p.returncode == 0 else p.stderr[-300:], "install")
     cli_path = temp_root / ".local/bin/dafeiyu"
     record("CLI 已安装", cli_path.exists() and os.access(cli_path, os.X_OK), str(cli_path), "install")
     record("守护进程已安装", (temp_root / ".local/bin/dafeiyu-daemon").exists(), "", "install")
     record("MCP 脚本已安装", (temp_root / ".local/bin/dafeiyu_mcp.py").exists(), "", "install")
     record("动画素材已安装", (temp_root / ".dafeiyu/clips/manifest.json").exists(), "", "install")
+    record("小黑形象与喵叫已安装",
+           (temp_root / ".dafeiyu/characters/xiaohei/manifest.json").exists()
+           and (temp_root / ".dafeiyu/sounds/xiaohei_meow.wav").exists(), "", "install")
     record("歌词模块已安装", (temp_root / ".local/bin/dafeiyu_music.py").exists(), "", "install")
     record("终端版已安装", (temp_root / ".local/bin/dafeiyu_tui.py").exists(), "", "install")
     record("macOS 音乐适配器已安装",
@@ -253,7 +331,7 @@ def check_install() -> None:
     d = json.loads(qpath.read_text())
     d["custom"] = {"keep": True}
     qpath.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
-    p = run([str(ROOT / "scripts/install.sh"), "--no-start", "--with-mcp"], env=env_for_temp(), timeout=120)
+    p = run([str(ROOT / "scripts/install.sh"), "--no-start", "--with-mcp"], env=env_for_temp(), timeout=300)
     d2 = json.loads(qpath.read_text())
     toml2 = (temp_root / ".codex/config.toml").read_text()
     record("重复安装幂等", p.returncode == 0 and d2.get("custom") == {"keep": True} and toml2.count("[mcp_servers.dafeiyu]") == 1,
@@ -488,6 +566,58 @@ def check_e2e() -> None:
     coach_json("move", "--x", "1000", "--y", "650")
 
 
+def check_character() -> None:
+    section("4b. 双形象切换")
+    st = status()
+    ids = {c.get("id") for c in (st.get("characters") or [])}
+    record("状态列出两个形象", {"dafeiyu", "xiaohei"} <= ids and st.get("character") == "dafeiyu",
+           f"current={st.get('character')} options={sorted(ids)}", "character")
+    r = coach_json("config", "--character", "xiaohei")
+    st = status()
+    record("切换到小黑并持久化", st.get("character") == "xiaohei" and st.get("displayName") == "小黑"
+           and st.get("clip") == "idle" and "characters/xiaohei" in (st.get("assets") or ""),
+           f"clip={st.get('clip')} assets={st.get('assets')}", "character")
+    clips = st.get("clips") or []
+    bad = []
+    for clip in clips:
+        rr = coach_json("play", clip)
+        if not rr.get("ok"):
+            bad.append(f"{clip}:{rr.get('error')}")
+    record(f"小黑 {len(clips)} 段全部可播放", len(clips) >= 25 and not bad,
+           f"{len(clips)} 组" + (f" / 失败 {bad}" if bad else ""), "character")
+    r = coach_json("xiaohei", "wash")
+    record("小黑互动：洗脸动作", r.get("ok") is True and r.get("clip") == "wash",
+           f"clip={r.get('clip')}", "character")
+    r = coach_json("xiaohei", "sleep")
+    record("小黑互动：睡觉循环", r.get("ok") is True and r.get("clip") == "sleep" and r.get("sleeping") is True,
+           f"clip={r.get('clip')} sleeping={r.get('sleeping')}", "character")
+    r = coach_json("config", "--meow", "off")
+    st = status()
+    r2 = coach_json("xiaohei", "meow2")
+    r3 = coach_json("config", "--meow-sound", "off")
+    st3 = status()
+    r4 = coach_json("config", "--meow-sound", "on")
+    record("小黑喵喵叫开关 / 连叫 / 音效", r.get("meowEnabled") is False and st.get("meowEnabled") is False
+           and r2.get("ok") is True and r2.get("clip") == "meow"
+           and r3.get("meowSound") is False and st3.get("meowSound") is False
+           and r4.get("meowSound") is True,
+           f"meowEnabled={st.get('meowEnabled')} meow2={r2.get('clip')} sound={r4.get('meowSound')}", "character")
+    r = coach_json("config", "--sing-style", "mic")
+    st = status()
+    record("唱歌花样：尾巴麦克风", st.get("singStyle") == "mic" and "sing_mic" in clips,
+           f"style={st.get('singStyle')} variant={st.get('singVariant')}", "character")
+    r = coach_json("play", "sing_mic")
+    st = status()
+    record("尾巴麦克风变体可播放", r.get("ok") is True and st.get("clip") == "sing_mic",
+           f"clip={st.get('clip')} variant={st.get('singVariant')}", "character")
+    coach_json("play", "idle")
+    coach_json("config", "--sing-style", "auto", "--meow", "on")
+    coach_json("config", "--character", "dafeiyu")
+    st = status()
+    record("切回大肥鱼", st.get("character") == "dafeiyu" and st.get("displayName") == "大肥鱼",
+           f"clip={st.get('clip')}", "character")
+
+
 def check_music_interactions() -> None:
     section("4b. 音乐 / 歌词 / 米饭 / 番茄钟 / 过渡")
     assert temp_root and cli_path
@@ -591,8 +721,9 @@ print(json.dumps({"elapsed": t["elapsed"], "source": t["source"]}))
     coach_json("focus", "--cancel")
 
     coach_json("quiet", "on", "--minutes", "0.02")
-    time.sleep(2.0)
-    record("会议模式到点自动解除", status().get("quiet") is False, "", "interaction")
+    time.sleep(3.0)   # idleTick 周期 1s；给 1.2s 的截止时间留两个 tick
+    record("会议模式到点自动解除", status().get("quiet") is False,
+           f"quiet={status().get('quiet')}", "interaction")
     coach_json("quiet", "off")
 
     coach_json("play", "success")
@@ -753,9 +884,9 @@ def check_privacy() -> None:
 def check_docs() -> None:
     section("8. 文档与可交付")
     readme = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").exists() else ""
-    need = ["安装", "Agent", "MCP", "性能", "架构", "审计", "许可"]
+    need = ["安装", "Agent", "MCP", "性能", "架构", "审计", "许可", "小黑"]
     missing = [k for k in need if k not in readme]
-    record("README 完整", bool(readme) and "1.2.0" in readme and "音乐与唱歌" in readme and not missing, "缺 " + ",".join(missing) if missing else f"{len(readme)} 字符", "docs")
+    record("README 完整", bool(readme) and "1.4.0" in readme and "音乐与唱歌" in readme and not missing, "缺 " + ",".join(missing) if missing else f"{len(readme)} 字符", "docs")
     for name, path in [
         ("LICENSE", ROOT / "LICENSE"), ("NOTICE", ROOT / "NOTICE.md"),
         ("CHANGELOG", ROOT / "CHANGELOG.md"), ("ARCHITECTURE", ROOT / "docs/ARCHITECTURE.md"),
@@ -804,7 +935,7 @@ def capture(path: Path, pet, bubble, target_pt, scale, expect_ring=True) -> bool
         for r, g, b in crop.getdata():
             if pred(r, g, b): n += 1
         return n
-    pet_pixels = count(regions[0], lambda r, g, b: max(r, g, b) - min(r, g, b) > 35 and max(r, g, b) < 245)
+    pet_pixels = count(regions[0], lambda r, g, b: abs(r - 245) + abs(g - 242) + abs(b - 237) > 45)
     bubble_pixels = count(regions[1], lambda r, g, b: r > 235 and g > 235 and b > 230)
     ring_pixels = count(regions[2], lambda r, g, b: r > 200 and g < 205 and b < 190 and (r - g) > 25)
     ok = pet is not None and bubble is not None and pet_pixels > 1200 and bubble_pixels > 2000
@@ -890,6 +1021,31 @@ def check_visual() -> None:
     ok5 = capture(SHOTS / "05-rice.png", st.get("pet"), st.get("bubble"), (800, 850), scale, expect_ring=False)
     record("证据 05：米饭 + 饭碗", ok5, str(SHOTS / "05-rice.png"), "visual")
 
+    coach_json("config", "--character", "xiaohei")
+    coach_json("move", "--x", "1000", "--y", "650")
+    coach_json("hello", "--agent", "audit")
+    time.sleep(0.4)
+    coach_json("play", "idle")
+    time.sleep(0.7)
+    st = status()
+    ok6 = capture(SHOTS / "06-xiaohei.png", st.get("pet"), st.get("bubble"), (800, 850), scale, expect_ring=False)
+    record("证据 06：小黑形象 + 气泡", ok6, str(SHOTS / "06-xiaohei.png"), "visual")
+    ok7 = all((SHOTS / f).exists() and (SHOTS / f).stat().st_size > 20000
+              for f in ["10-xiaohei-rig.png", "11-xiaohei-actions.png"])
+    record("证据 10：小黑前肢骨骼 + 新增动作总览", ok7,
+           str(SHOTS / "10-xiaohei-rig.png") + " / " + str(SHOTS / "11-xiaohei-actions.png"), "visual")
+    for clip, filename in [("sleep", "18-xiaohei-sleep-live.png"),
+                           ("sing_mic", "19-xiaohei-mic-live.png"),
+                           ("sing_hat", "20-xiaohei-hat-live.png")]:
+        coach_json("play", clip)
+        time.sleep(0.15)
+        live = status()
+        captured = capture(SHOTS / filename, live.get("pet"), live.get("bubble"),
+                           (800, 850), scale, expect_ring=False)
+        record(f"新实机证据：{clip}无叠帧", captured and live.get("clip") == clip and live.get("blend") == 1,
+               f"{filename} clip={live.get('clip')} blend={live.get('blend')}", "visual")
+    coach_json("config", "--character", "dafeiyu")
+
     tui_txt = run([sys.executable, str(temp_root / ".local/bin/dafeiyu_tui.py"), "--once", "--no-color"],
                   env=env_for_temp(), timeout=15)
     (SHOTS / "tui-sample.txt").write_text(tui_txt.stdout, encoding="utf-8")
@@ -902,7 +1058,8 @@ def check_visual() -> None:
     record("证据 09：QQ 音乐真机唱歌", (SHOTS / "08-qq-music.png").exists(),
            str(SHOTS / "08-qq-music.png"), "visual")
 
-    for f in ["01-guide.png", "02-success.png", "03-companion.png", "04-music.png", "05-rice.png"]:
+    for f in ["01-guide.png", "02-success.png", "03-companion.png", "04-music.png", "05-rice.png", "06-xiaohei.png",
+              "10-xiaohei-rig.png", "11-xiaohei-actions.png", "13-xiaohei-menu.png", "14-xiaohei-festival.png", "15-xiaohei-poses.png"]:
         p = SHOTS / f
         record(f"截图非空 {f}", p.exists() and p.stat().st_size > 20000, f"{p.stat().st_size//1024 if p.exists() else 0} KB", "visual")
     coach_json("stage", "off")
@@ -943,6 +1100,7 @@ def main() -> int:
         check_size()
         check_install()
         check_e2e()
+        check_character()
         check_music_interactions()
         check_tui()
         check_mcp()

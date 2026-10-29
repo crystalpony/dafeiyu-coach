@@ -42,7 +42,7 @@ if os.name == "nt":
         except Exception:
             pass
 
-VERSION = "1.2.0"
+VERSION = "1.4.0"
 ROOT = Path(__file__).resolve().parent.parent
 HOME = Path(os.environ.get("DAFEIYU_HOME", str(Path.home() / ".dafeiyu")))
 SOCKET = HOME / "coach.sock"

@@ -1,0 +1,22 @@
+{
+  "front": {
+    "sha256": "ef3c2e2f86490ee64e6b94da67d23b08eccced56d95b5677ab0b45525414a790",
+    "unchanged": true
+  },
+  "side": {
+    "sha256": "70ca525ada3d63f00aaf12fa72b83bc4f7a04dc68667fca43f44e6bb90f807b2",
+    "unchanged": true
+  },
+  "lie": {
+    "sha256": "3590a954af9bf6b126e4b3c448310168dfda917e68764ae9b97ee61394c8fd85",
+    "unchanged": true
+  },
+  "sleep": {
+    "sha256": "6a63e57f9ec4a88d7a4afa0204de5f5112535cda167e1f2b2b741cceeea9955d",
+    "unchanged": true
+  },
+  "angry": {
+    "sha256": "1009b339ac3dba34edcce8bb0e25a150f0497eaccb44207310cd5c6f93fee498",
+    "unchanged": true
+  }
+}

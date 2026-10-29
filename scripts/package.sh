@@ -3,8 +3,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-VERSION="1.2.0"
-DIST="$ROOT/dist"
+VERSION="1.4.0"
+DIST="${DAFEIYU_DIST:-$ROOT/dist}"
 WORK="$(mktemp -d /tmp/dafeiyu-package.XXXXXX)"
 APP="$WORK/Dafeiyu Coach.app"
 mkdir -p "$DIST"
@@ -14,9 +14,13 @@ rm -rf "$DIST"/Dafeiyu\ Coach.app "$DIST"/dafeiyu-coach-"$VERSION"-macos.zip "$D
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/bin" "$APP/Contents/Resources"
 cp .build/dafeiyu-daemon "$APP/Contents/Resources/bin/dafeiyu-daemon"
 cp -R Runtime/clips "$APP/Contents/Resources/clips"
+python3 scripts/prune_characters.py "${DAFEIYU_CHARACTERS_SRC:-$ROOT/Runtime/characters}" --snapshot "$APP/Contents/Resources/characters"
+python3 scripts/prune_characters.py "$APP/Contents/Resources/characters" >/dev/null
 cp -R Runtime/music "$APP/Contents/Resources/music"
+cp -R Runtime/sounds "$APP/Contents/Resources/sounds"
 cp Runtime/mascot.png "$APP/Contents/Resources/mascot.png"
 cp bin/dafeiyu bin/dafeiyu_music.py bin/dafeiyu_tui.py bin/dafeiyu_gui.py bin/dafeiyu_mcp.py "$APP/Contents/Resources/bin/"
+cp README.md LICENSE NOTICE.md CHANGELOG.md "$APP/Contents/Resources/"
 cp -R skills adapter* "$APP/Contents/Resources/" 2>/dev/null || true
 chmod +x "$APP/Contents/Resources/bin/"*
 
@@ -25,6 +29,8 @@ cat > "$APP/Contents/MacOS/DafeiyuCoach" <<'LAUNCH'
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="$HERE/Resources/bin"
 export DAFEIYU_ASSETS="$HERE/Resources/clips"
+export DAFEIYU_CHARACTERS="$HERE/Resources/characters"
+export DAFEIYU_SOUNDS="$HERE/Resources/sounds"
 export DAFEIYU_MUSIC_DIR="$HERE/Resources/music"
 "$BIN/dafeiyu-daemon" &
 DPID=$!
@@ -85,6 +91,9 @@ rm -rf "$WIN"; mkdir -p "$WIN/bin" "$WIN/Runtime/music" "$WIN/scripts" "$WIN/ski
 cp bin/dafeiyu bin/dafeiyu_music.py bin/dafeiyu_tui.py bin/dafeiyu_gui.py bin/dafeiyu_mcp.py "$WIN/bin/"
 cp scripts/install.ps1 requirements-windows.txt "$WIN/scripts/" 2>/dev/null || true
 cp -R Runtime/clips "$WIN/Runtime/clips"
+python3 scripts/prune_characters.py "${DAFEIYU_CHARACTERS_SRC:-$ROOT/Runtime/characters}" --snapshot "$WIN/Runtime/characters"
+python3 scripts/prune_characters.py "$WIN/Runtime/characters" >/dev/null
+cp -R Runtime/sounds "$WIN/Runtime/sounds"
 cp Runtime/music/media_smtc.ps1 Runtime/music/README.md Runtime/music/LICENSE-MediaRemoteAdapter.txt "$WIN/Runtime/music/"
 cp -R skills/dafeiyu-coach "$WIN/skills/"
 cp -R adapters/* "$WIN/adapters/"

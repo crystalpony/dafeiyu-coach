@@ -36,7 +36,7 @@ if os.name == "nt":
         except Exception:
             pass
 
-VERSION = "1.2.0"
+VERSION = "1.4.0"
 HOME = Path(os.environ.get("DAFEIYU_HOME", str(Path.home() / ".dafeiyu")))
 SOCKET = HOME / "coach.sock"
 PORT_FILE = HOME / "coach.port"
@@ -183,7 +183,7 @@ class Core:
             self._anim_since = now
         # 一次性动作播完回唱歌/待机，避免 GUI 停在最后一帧
         dur = {"pat": 4.0, "success": 4.8, "error": 3.2, "poke": 3.2, "tail": 3.2,
-               "rice": 4.0, "yawn": 4.0, "stretch": 4.0, "drop": 1.6}.get(self.anim)
+               "rice": 4.0, "yawn": 4.0, "stretch": 4.0, "drop": 1.6, "meow": 1.6}.get(self.anim)
         if dur and now - self._anim_since > dur:
             self.anim = "sing" if self.singing else "idle"
             self._last_anim = self.anim

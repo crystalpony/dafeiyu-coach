@@ -51,6 +51,9 @@ extension AppController {
         guard settings.petOn else { return }
         if let t = musicLastUpdate, singing, Date().timeIntervalSince(t) > 30 {
             stopMusicDisplay()
+            if ["sing", "sing_mic", "sing_hat", "sing_tail"].contains(player.resolvedName) {
+                player.play("idle", loop: true, autoIdle: true, transition: 0.24, priority: 10, force: true)
+            }
         }
         if let until = focusUntil, Date() >= until {
             finishFocus()
@@ -64,7 +67,11 @@ extension AppController {
         let idleFor = Date().timeIntervalSince(lastCommandAt)
         if !settings.quiet, !singing, !sleeping, session == nil, idleFor > 600 {
             sleeping = true
-            player.play("yawn", loop: false, autoIdle: false)
+            if manifest.clips["sleep"] != nil {
+                player.play("sleep", loop: true, autoIdle: false, transition: 0.20, priority: 60, force: true)
+            } else {
+                player.play("yawn", loop: false, autoIdle: false)
+            }
             petView.sleeping = true
             logLine("sleep")
             return
@@ -73,6 +80,15 @@ extension AppController {
         if isMeetingFrontmost() { return }
         guard Date() >= nextIdleActionAt else { return }
         nextIdleActionAt = Date().addingTimeInterval(Double.random(in: 70...150))
+        if manifest.character == "xiaohei" {
+            let r = Int.random(in: 0..<12)
+            if r < 2 { xiaoheiAction("wash"); return }
+            if r < 4, (settings.meowEnabled ?? true) {
+                xiaoheiAction(Bool.random() ? "meow" : "meow2")
+                return
+            }
+            if r == 4 { xiaoheiAction("heixiu"); return }
+        }
         let roll = Int.random(in: 0..<10)
         if roll < 4 {
             player.play("pat", loop: false, autoIdle: true)
@@ -144,7 +160,7 @@ extension AppController {
         player.play("rice", loop: false, autoIdle: false, transition: 0.18, priority: 85) { [weak self] _ in
             guard let self else { return }
             if self.singing {
-                self.player.play("sing", loop: true, autoIdle: true, transition: 0.20, priority: 85)
+                self.playSing(force: true, transition: 0.24)
             } else {
                 self.player.play("idle", loop: true, autoIdle: true, transition: 0.20)
             }

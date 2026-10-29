@@ -4,6 +4,7 @@ import Foundation
 /// 逐帧播放器：按需从磁盘解码，NSCache 限制常驻帧数，避免 890 帧同时进内存。
 final class ClipPlayer {
     private let manifest: ClipManifest
+    private let assets: URL
     private let cache = NSCache<NSString, NSImage>()
     private(set) var currentName: String = "idle"
     private(set) var current: ClipInfo
@@ -11,19 +12,23 @@ final class ClipPlayer {
     private var accumulator: Double = 0
     private var finishedFired = false
     private var lastTick: CFTimeInterval = CACurrentMediaTime()
+    private var playGeneration = 0
 
     var autoReturnToIdle = true
     var onClipFinished: ((String) -> Void)?
 
-    // 过渡：上一帧 + 新剪辑叠加，避免 0ms 硬切
+    var usesBakedMotion: Bool { manifest.character == "xiaohei" }
+
+    // 大肥鱼保留淡化；小黑动作已烘焙，只替换单帧，避免双脸和残影。
     private(set) var previousImage: NSImage?
     private(set) var blend: CGFloat = 1
     private var transitionDuration: Double = 0.14
     private(set) var currentPriority = 0
     private(set) var busy = false
 
-    init(manifest: ClipManifest) {
+    init(manifest: ClipManifest, assets: URL = Paths.assets) {
         self.manifest = manifest
+        self.assets = assets
         self.current = manifest.clips["idle"] ?? ClipInfo(fps: 12, loop: true, frameCount: 1, durationMs: 1000, frames: [])
         cache.countLimit = 28
     }
@@ -57,7 +62,7 @@ final class ClipPlayer {
             if busy && priority < currentPriority { return }
         }
 
-        let outgoing = image()
+        let outgoing = usesBakedMotion ? nil : image()
         currentName = name
         current = clip
         frameIndex = 0
@@ -66,6 +71,7 @@ final class ClipPlayer {
         lastTick = CACurrentMediaTime()
         currentPriority = priority
         busy = !clip.loop && clip.frameCount > 1
+        playGeneration &+= 1
         if let a = autoIdle { autoReturnToIdle = a }
         onClipFinished = onFinish
         if transition > 0, let outgoing {
@@ -93,7 +99,7 @@ final class ClipPlayer {
         guard current.frameCount > 1, !current.frames.isEmpty else { return changed }
         accumulator += dt
         let step = 1.0 / max(current.fps, 1)
-        guard accumulator >= step else { return false }
+        guard accumulator >= step else { return changed }
         let advance = min(6, Int(accumulator / step))
         accumulator -= Double(advance) * step
         if current.loop {
@@ -107,10 +113,11 @@ final class ClipPlayer {
                 finishedFired = true
                 busy = false
                 let name = currentName
+                let gen = playGeneration
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.onClipFinished?(name)
-                    if self.autoReturnToIdle && !self.current.loop {
+                    if self.autoReturnToIdle && !self.current.loop && self.playGeneration == gen {
                         self.play("idle", loop: true, autoIdle: true,
                                   transition: 0.18, priority: 10, force: true, onFinish: nil)
                     }
@@ -128,7 +135,7 @@ final class ClipPlayer {
         let rel = current.frames[idx]
         let key = rel as NSString
         if let hit = cache.object(forKey: key) { return hit }
-        let url = Paths.assets.appendingPathComponent(rel)
+        let url = assets.appendingPathComponent(rel)
         guard let img = NSImage(contentsOf: url) else { return nil }
         cache.setObject(img, forKey: key)
         return img
@@ -145,7 +152,7 @@ final class ClipPlayer {
         let rel = current.frames[i]
         let key = rel as NSString
         if let hit = cache.object(forKey: key) { return hit }
-        guard let img = NSImage(contentsOf: Paths.assets.appendingPathComponent(rel)) else { return nil }
+        guard let img = NSImage(contentsOf: assets.appendingPathComponent(rel)) else { return nil }
         cache.setObject(img, forKey: key)
         return img
     }

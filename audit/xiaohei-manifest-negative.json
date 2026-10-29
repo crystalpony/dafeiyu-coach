@@ -1,0 +1,28 @@
+{
+  "fixture": "idle loses one frame, thinking adds that frame; total still 1992",
+  "decoded": 1992,
+  "rerendered": 74,
+  "rejected": true,
+  "errors": [
+    [
+      "idle",
+      "frame-list-order-or-count"
+    ],
+    [
+      "idle",
+      "missing-frame-hashes"
+    ],
+    [
+      "thinking",
+      "frame-list-order-or-count"
+    ],
+    [
+      "thinking",
+      "missing-frame-hashes"
+    ],
+    [
+      "rerender-sample-count",
+      74
+    ]
+  ]
+}

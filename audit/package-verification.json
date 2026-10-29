@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "packages": [
+    {
+      "file": "dafeiyu-coach-1.4.0-macos.zip",
+      "bytes": 36703099,
+      "sha256": "02ab4be30ca1a4df25813acb50700a0b538c617e538fbb6f6941a1fa4031b12a",
+      "verifiedFrames": 2882,
+      "crc": true,
+      "notice": true
+    },
+    {
+      "file": "dafeiyu-coach-1.4.0-windows.zip",
+      "bytes": 35543133,
+      "sha256": "cb485cd103f4a28a857bb7803b0ac4b3daf967f1f6f6dbe9f11ad79d98541e17",
+      "verifiedFrames": 2882,
+      "crc": true,
+      "notice": true
+    }
+  ]
+}

@@ -13,6 +13,17 @@ Copy-Item (Join-Path $Root 'bin\dafeiyu_mcp.py') $Prefix -Force
 Copy-Item (Join-Path $Root 'Runtime\music\*') (Join-Path $Data 'music') -Recurse -Force
 New-Item -ItemType Directory -Force -Path (Join-Path $Data 'clips') | Out-Null
 Copy-Item (Join-Path $Root 'Runtime\clips\*') (Join-Path $Data 'clips') -Recurse -Force
+$SoundSrc = Join-Path $Root 'Runtime\sounds'
+if (Test-Path $SoundSrc) {
+  New-Item -ItemType Directory -Force -Path (Join-Path $Data 'sounds') | Out-Null
+  Copy-Item (Join-Path $SoundSrc '*') (Join-Path $Data 'sounds') -Recurse -Force
+}
+$CharSrc = Join-Path $Root 'Runtime\characters'
+if (Test-Path $CharSrc) {
+  $CharDst = Join-Path $Data 'characters'
+  New-Item -ItemType Directory -Force -Path $CharDst | Out-Null
+  Copy-Item (Join-Path $CharSrc '*') $CharDst -Recurse -Force
+}
 $cmd = @"
 @echo off
 chcp 65001 >/dev/null

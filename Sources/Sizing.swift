@@ -27,6 +27,11 @@ extension AppController {
         return (180, 40, max(180, floor(vf.width * 0.5 - 8)), max(40, floor(vf.height * 0.5 - 8)))
     }
 
+    func petSize() -> NSSize {
+        NSSize(width: round(petBase.width * CGFloat(settings.petScale)),
+               height: round(petBase.height * CGFloat(settings.petScale)))
+    }
+
     func currentBubbleBase() -> NSSize {
         BubbleView.measure(title: bubbleView.title, text: bubbleView.text,
                            subtext: bubbleView.subtext, badge: bubbleView.badge,

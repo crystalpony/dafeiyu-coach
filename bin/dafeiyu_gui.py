@@ -18,6 +18,7 @@ import os
 import sys
 import time
 import ctypes
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -42,10 +43,55 @@ ROOT = Path(__file__).resolve().parent.parent
 GUI_CFG = HOME / "gui.json"
 
 
-def find_assets() -> Path | None:
+def preferred_character() -> str:
+    try:
+        st = json.loads((HOME / "settings.json").read_text(encoding="utf-8"))
+        return st.get("character") or "dafeiyu"
+    except Exception:
+        return "dafeiyu"
+
+
+def find_assets(character: str | None = None) -> Path | None:
+    cid = character or preferred_character()
+    if cid and cid != "dafeiyu":
+        for p in (HOME / "characters" / cid,
+                  ROOT / "Runtime" / "characters" / cid,
+                  ROOT / "characters" / cid,
+                  Path(sys.executable).resolve().parent / "characters" / cid):
+            if (p / "manifest.json").exists():
+                return p
+        if character:
+            return None
     for p in (HOME / "clips", ROOT / "Runtime" / "clips", Path(sys.executable).resolve().parent / "clips"):
         if (p / "manifest.json").exists():
             return p
+    return None
+
+
+def read_settings() -> dict:
+    try:
+        return json.loads((HOME / "settings.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def set_setting(key: str, value) -> None:
+    s = read_settings()
+    s[key] = value
+    try:
+        HOME.mkdir(parents=True, exist_ok=True)
+        (HOME / "settings.json").write_text(json.dumps(s, ensure_ascii=False, indent=2, sort_keys=True),
+                                            encoding="utf-8")
+    except OSError:
+        pass
+
+
+def meow_sound_path() -> Path | None:
+    for p in (HOME / "sounds", ROOT / "Runtime" / "sounds",
+              Path(sys.executable).resolve().parent / "sounds"):
+        f = p / "xiaohei_meow.wav"
+        if f.exists():
+            return f
     return None
 
 
@@ -114,6 +160,7 @@ def click_through(win) -> None:
 class Animator:
     def __init__(self, assets: Path):
         self.manifest = json.loads((assets / "manifest.json").read_text(encoding="utf-8"))
+        self.uses_baked_motion = self.manifest.get("character") == "xiaohei"
         self.assets = assets
         self.cache: dict[str, Image.Image] = {}
         self.current = "idle"
@@ -160,7 +207,8 @@ class Animator:
             key = "idle"
         if key == self.current and not force:
             return
-        old = self.image()
+        # 小黑只替换完整姿态，不保留旧脸参与 Image.blend。
+        old = None if self.uses_baked_motion else self.image()
         c = clips[key]
         self.current = key
         self.frames = c.get("frames") or []
@@ -168,6 +216,8 @@ class Animator:
         self.loop = bool(c.get("loop", True))
         self.idx = 0
         self.acc = 0
+        if self.uses_baked_motion:
+            self.last = time.monotonic()
         self.finished = False
         self.prev = old if not force else None
         self.blend = 0.0 if self.prev is not None else 1.0
@@ -230,6 +280,7 @@ class GuiApp:
         self.dragging = False
         self.drag_start = (0, 0, 0, 0)
         self.notes: list[int] = []
+        self._meow_seq = 0
         self.hearts: list[int] = []
         self.last_rice = None
         enable_dpi_awareness()
@@ -351,6 +402,16 @@ class GuiApp:
         m.add_command(label="添一碗米饭", command=self.feed)
         m.add_command(label="专注 25 分钟", command=self.focus)
         m.add_command(label="取消专注", command=lambda: self.core.handle({"cmd": "focus", "cancel": True}))
+        if self.anim.manifest.get("character") == "xiaohei":
+            m.add_separator()
+            m.add_command(label="喵一声", command=lambda: self.meow(False))
+            m.add_command(label="喵两声", command=lambda: self.meow(True))
+            mv = tk.BooleanVar(value=bool(read_settings().get("meowEnabled", True)))
+            m.add_checkbutton(label="待机随机喵喵叫", variable=mv,
+                              command=lambda: set_setting("meowEnabled", mv.get()))
+            sv = tk.BooleanVar(value=bool(read_settings().get("meowSound", True)))
+            m.add_checkbutton(label="喵叫音效", variable=sv,
+                              command=lambda: set_setting("meowSound", sv.get()))
         m.add_separator()
         m.add_command(label="停止唱歌", command=lambda: self.core.handle({"cmd": "music_stop"}))
         m.add_command(label="显示/收起气泡", command=self.toggle_bubble)
@@ -360,6 +421,42 @@ class GuiApp:
             m.tk_popup(e.x_root, e.y_root)
         finally:
             m.grab_release()
+
+    def meow(self, twice: bool = False) -> None:
+        if "meow" not in self.anim.manifest.get("clips", {}):
+            return
+        self._meow_seq += 1
+        gen = self._meow_seq
+        self.core.handle({"cmd": "anim", "clip": "meow"})
+        if bool(read_settings().get("meowSound", True)):
+            self._play_meow()
+        if not twice:
+            return
+        self.root.after(1500, lambda: self._meow_second(gen))
+        self.root.after(1600, lambda: self._play_meow_second(gen))
+
+    def _meow_second(self, gen: int) -> None:
+        if gen != self._meow_seq:
+            return
+        self.core.handle({"cmd": "anim", "clip": "meow"})
+
+    def _play_meow_second(self, gen: int) -> None:
+        if gen == self._meow_seq and bool(read_settings().get("meowSound", True)):
+            self._play_meow()
+
+    def _play_meow(self) -> None:
+        f = meow_sound_path()
+        if not f:
+            return
+        try:
+            if IS_WIN:
+                import winsound
+                winsound.PlaySound(str(f), winsound.SND_FILENAME | winsound.SND_ASYNC)
+            else:
+                subprocess.Popen(["afplay", str(f)],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
 
     def toggle_bubble(self):
         self.user_hidden = not self.user_hidden
@@ -562,7 +659,8 @@ class GuiApp:
         self.update_pointer(s)
         self.update_notes(s)
         self.phase += 0.06
-        self.root.after(70, self.tick)
+        # 70ms 会跳过小黑 24fps 的烘焙帧；大肥鱼保留原调度。
+        self.root.after(16 if self.anim.uses_baked_motion else 70, self.tick)
 
     def quit(self):
         try:
@@ -649,18 +747,22 @@ def main(argv=None) -> int:
     ap.add_argument("--smoke", action="store_true", help="创建窗口、渲染几帧、截图后退出（CI）")
     ap.add_argument("--smoke-music", action="store_true", help="冒烟：歌词+唱歌状态")
     ap.add_argument("--check", action="store_true", help="只检查依赖/素材")
+    ap.add_argument("--character", choices=["dafeiyu", "xiaohei"], help="形象（默认读 settings.json）")
     args = ap.parse_args(argv)
     if GUI_ERR is not None:
         print(f"缺少 GUI 依赖：{GUI_ERR}\nWindows: python -m pip install --user Pillow")
         return 2
-    assets = find_assets()
+    assets = find_assets(args.character)
     if not assets:
-        print("找不到动画素材 clips/manifest.json")
+        print(f"找不到形象素材：{args.character or preferred_character()}")
         return 2
     if not IS_WIN:
         print("提示：这是跨平台窗口版；macOS 原生桌宠请用已安装的 dafeiyu-daemon。")
     if args.check:
+        manifest = json.loads((assets / "manifest.json").read_text(encoding="utf-8"))
         print(json.dumps({"ok": True, "platform": sys.platform, "assets": str(assets),
+                          "character": manifest.get("character"), "clips": len(manifest.get("clips") or {}),
+                          "sound": bool(meow_sound_path()),
                           "tk": tk.TkVersion, "pillow": Image.__version__}, ensure_ascii=False))
         return 0
     app = GuiApp(assets, no_music=args.no_music, smoke=args.smoke or args.smoke_music)

@@ -25,10 +25,10 @@
 ┌───────────────▼─────────────────────────────────────────────┐
 │ dafeiyu-daemon（Swift + AppKit，单二进制）                    │
 │  AppController   任务状态机、设置/会话、菜单栏、命令分发       │
-│  PetView         15 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸/zzz  │
+│  PetView         15/25 段动画、拖拽、摸头/戳/尾巴、爱心/彩纸/zzz  │
 │  BubbleView      标题/正文/提示/徽章/进度点/自动收起           │
 │  PointerView     每屏一层：脉冲圈、箭头、虚线、标签            │
-│  ClipPlayer      按需解码 + NSCache(28 帧) + 12/24 fps        │
+│  ClipPlayer      按需解码 + NSCache(28 帧) + 12/24 fps + 素材根 │
 │  Companion       待机动作、应用感知、游到鼠标、睡觉            │
 │  CoachServer     AF_UNIX 监听、JSON 解析、主线程串行处理        │
 └─────────────────────────────────────────────────────────────┘
@@ -42,6 +42,27 @@
 │ LRCLIB / 本地 LRC     │      └──────────────────────────────┘
 └───────────────────────┘
 ```
+
+## 多形象
+
+```
+Runtime/clips/                 默认形象（大肥鱼，上游 MIT）
+Runtime/characters/<id>/       可选形象（xiaohei 为用户手绘底图 + 程序动画，manifest + 300×250 帧）
+        │
+        ▼
+Paths.characterAssets(id)      先查 DAFEIYU_CHARACTERS，再查 clips 同级 characters/、clips-<id>、~/.dafeiyu/characters
+        │
+        ▼
+AppController.switchCharacter  重建 ClipPlayer(manifest, assets)，刷新 PetView、菜单栏图标/标题
+                                settings.character 持久化；会话/指针/气泡状态不动
+```
+
+- 两套素材共用同一套 clip 名与动画状态机，`play/mood/guide/music` 无需按形象分支。
+- 菜单「形象」由 `CharacterOption.all()` 动态生成：内置 dafeiyu/xiaohei，外加用户自己放进 `characters/<id>` 的 manifest。
+- `--check` / `--selftest` 会校验每套已安装形象的帧是否存在；缺小黑不阻塞只装大肥鱼的精简安装。
+- 小黑生成器 `scripts/build_xiaohei.py` 以用户手绘多视角稿（`scripts/poses/`）为底，做透明化/去白边、表情/嘴型叠加、多视角姿态、尾巴网格摆动、整身变换与道具合成，输出 24fps WebP；不依赖 AppKit 或模型文件。
+- 25 段：通用 15 段 + 蹭脸/打滚/扑/炸毛/睡觉/喵/黑咻 + 4 种唱歌变体（sing / sing_mic / sing_hat / sing_tail）。正面动作不绘制任何附加前臂；拖拽/打滚/睡觉/生气/摇尾使用新插图的完整姿态；动作由 `pose`/`prop`/`wear_cap`/`tail_mic` 驱动；`scripts/xiaohei_qa.py` 负责骨骼叠加与帧边界检查。
+- 唱歌变体由 `Sources/Singing.swift` 调度：固定风格直接映射；自动模式每 8–16 秒偶发切换，统一 0.36s 交叉淡化，不改变角色模型。
 
 ## 音乐与唱歌
 

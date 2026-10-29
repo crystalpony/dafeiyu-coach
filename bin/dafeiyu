@@ -34,7 +34,7 @@ if os.name == "nt":
         except Exception:
             pass
 
-VERSION = "1.2.0"
+VERSION = "1.4.0"
 HOME = Path(os.environ.get("DAFEIYU_HOME", Path.home() / ".dafeiyu"))
 SOCKET = HOME / "coach.sock"
 PORT_FILE = HOME / "coach.port"
@@ -552,8 +552,16 @@ def cmd_config(args) -> int:
         payload["quiet"] = args.quiet == "on"
     if args.sing:
         payload["sing"] = args.sing == "on"
+    if args.sing_style:
+        payload["singStyle"] = args.sing_style
+    if args.meow:
+        payload["meowEnabled"] = args.meow == "on"
+    if args.meow_sound:
+        payload["meowSound"] = args.meow_sound == "on"
     if args.reduced_motion:
         payload["reducedMotion"] = args.reduced_motion == "on"
+    if args.character:
+        payload["character"] = args.character
     if args.pet_scale is not None:
         payload["petScale"] = args.pet_scale
     if args.bubble_scale is not None:
@@ -566,6 +574,31 @@ def cmd_config(args) -> int:
     if args.bubble_auto:
         payload["bubbleAuto"] = True
     return emit(call(payload), args.json)
+
+
+def cmd_xiaohei(args) -> int:
+    return emit(call({"cmd": "xiaohei_action", "name": args.action}), args.json)
+
+
+def cmd_character(args) -> int:
+    if args.name:
+        return emit(call({"cmd": "character", "name": args.name}), args.json)
+    if not ping():
+        if args.json:
+            print(json.dumps({"ok": True, "running": False, "options": ["dafeiyu", "xiaohei"]},
+                             ensure_ascii=False, indent=2))
+        else:
+            print("大肥鱼没有在运行（dafeiyu start 可启动）")
+            print("可选形象：dafeiyu / xiaohei；dafeiyu character xiaohei 会启动并直接切换")
+        return 0
+    st = call({"cmd": "status"}, auto_start=False)
+    if args.json:
+        return emit(st, True)
+    print(f"当前形象：{st.get('displayName') or st.get('character')}（{st.get('character')}）")
+    for item in st.get("characters") or []:
+        mark = " *" if item.get("id") == st.get("character") else ""
+        print(f"  {item.get('id'):10s} {item.get('name')}{mark}")
+    return 0
 
 
 def cmd_stage(args) -> int:
@@ -583,6 +616,8 @@ def cmd_gui(args) -> int:
     if getattr(args, "smoke", False): argv.append("--smoke")
     if getattr(args, "smoke_music", False): argv.append("--smoke-music")
     if getattr(args, "check", False): argv.append("--check")
+    if getattr(args, "character", None):
+        argv += ["--character", args.character]
     return subprocess.call([sys.executable, str(target)] + argv, env=env)
 
 
@@ -838,13 +873,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--playful", choices=["on", "off"])
     s.add_argument("--quiet", choices=["on", "off"])
     s.add_argument("--sing", choices=["on", "off"])
+    s.add_argument("--sing-style", choices=["auto", "sway", "mic", "hat", "tail"],
+                   help="小黑唱歌花样：自动/律动/立麦伴唱/街舞帽/坐直摇尾")
+    s.add_argument("--meow", choices=["on", "off"], help="小黑待机随机喵喵叫")
+    s.add_argument("--meow-sound", choices=["on", "off"], help="小黑喵叫音效开关")
     s.add_argument("--reduced-motion", choices=["on", "off"])
+    s.add_argument("--character", choices=["dafeiyu", "xiaohei"], help="切换桌宠形象")
     s.add_argument("--pet-scale", type=float, help="桌宠比例，如 1.2")
     s.add_argument("--bubble-scale", type=float, help="气泡比例，如 0.8；会退出手动宽高")
     s.add_argument("--bubble-width", type=float, help="气泡手动宽度 pt（需同时给 --bubble-height）")
     s.add_argument("--bubble-height", type=float, help="气泡手动高度 pt（需同时给 --bubble-width）")
     s.add_argument("--bubble-auto", action="store_true", help="恢复气泡自动大小/100%%")
     s.set_defaults(func=cmd_config)
+
+    s = sub.add_parser("xiaohei", help="小黑的经典互动：wash/roll/pounce/fluff/heixiu/meow/meow2/sleep/fish")
+    s.add_argument("action", choices=["wash", "roll", "pounce", "fluff", "heixiu", "meow", "meow2", "sleep", "fish"])
+    s.set_defaults(func=cmd_xiaohei)
+
+    s = sub.add_parser("character", help="查看或切换形象：dafeiyu / xiaohei")
+    s.add_argument("name", nargs="?", choices=["dafeiyu", "xiaohei"], help="不给则显示当前形象")
+    s.set_defaults(func=cmd_character)
 
     s = sub.add_parser("stage", help="演示舞台：盖住其它应用，便于截图/录屏")
     s.add_argument("value", choices=["on", "off"], nargs="?", default="on")
@@ -855,6 +903,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--smoke", action="store_true")
     s.add_argument("--smoke-music", action="store_true")
     s.add_argument("--check", action="store_true")
+    s.add_argument("--character", choices=["dafeiyu", "xiaohei"], help="形象（默认读 settings.json）")
     s.set_defaults(func=cmd_gui)
 
     s = sub.add_parser("tui", help="打开跨平台终端轻量版（ASCII 宠物 + 歌词 + 米饭）")

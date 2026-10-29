@@ -30,6 +30,9 @@ final class PetView: NSView {
     var notes: [HeartParticle] = []
     var phase: CGFloat = 0
     var pulse: CGFloat = 0
+    var festivalProp: String?
+    var festivalUntil: Date?
+    private var festivalTimer: Timer?
     var isDragging = false
     var interactive = true
 
@@ -54,9 +57,11 @@ final class PetView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         let w = bounds.width, h = bounds.height
-        let hop: CGFloat = pulse > 0 ? -7 * sin(pulse * .pi) : 0
-        let singBob: CGFloat = (singing && !reducedMotion) ? -2.2 * abs(sin(phase * 2.2)) : 0
-        let breathe: CGFloat = (player?.resolvedName == "idle") ? 1.5 * sin(phase) : 0
+        let usesBakedMotion = player?.usesBakedMotion ?? false
+        // 烘焙帧包含动作和落地影子，不能再整体漂移或旋转。
+        let hop: CGFloat = (!usesBakedMotion && pulse > 0) ? -7 * sin(pulse * .pi) : 0
+        let singBob: CGFloat = (!usesBakedMotion && singing && !reducedMotion) ? -2.2 * abs(sin(phase * 2.2)) : 0
+        let breathe: CGFloat = (!usesBakedMotion && player?.resolvedName == "idle") ? 1.5 * sin(phase) : 0
 
         if let p = player, p.image() != nil {
             let pad: CGFloat = 6
@@ -65,11 +70,11 @@ final class PetView: NSView {
             let incoming = p.image()
             if let ctx = NSGraphicsContext.current?.cgContext {
                 ctx.saveGState()
-                if isDragging {
+                if !usesBakedMotion && isDragging {
                     ctx.translateBy(x: w / 2, y: h / 2)
                     ctx.rotate(by: 0.045 * sin(phase * 1.4))
                     ctx.translateBy(x: -w / 2, y: -h / 2)
-                } else if singing && !reducedMotion {
+                } else if !usesBakedMotion && singing && !reducedMotion {
                     ctx.translateBy(x: w / 2, y: h / 2)
                     ctx.rotate(by: 0.018 * sin(phase * 2.6))
                     ctx.translateBy(x: -w / 2, y: -h / 2)
@@ -94,6 +99,9 @@ final class PetView: NSView {
         drawConfetti()
         drawHearts()
         drawNotes()
+        if let prop = festivalProp, let until = festivalUntil, Date() < until {
+            drawFestival(prop, w: w, h: h)
+        }
 
         if bubbleHidden && !isDragging {
             drawSpeechBadge(w: w, h: h)
@@ -127,8 +135,235 @@ final class PetView: NSView {
         NSBezierPath(ovalIn: NSRect(x: bodyRect.minX + 21, y: bodyRect.midY - 5, width: 5, height: 5)).fill()
     }
 
-    private func drawSpeechBadge(w: CGFloat, h: CGFloat) {
-        let sc = max(w / 210, 0.6)
+    func startFestival(_ kind: String, seconds: Double = 6.5) {
+        festivalProp = kind
+        festivalUntil = Date().addingTimeInterval(seconds)
+        festivalTimer?.invalidate()
+        needsDisplay = true
+        let t = Timer(timeInterval: 1.0 / 24.0, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            self.needsDisplay = true
+            if let until = self.festivalUntil, Date() >= until {
+                timer.invalidate()
+                self.festivalTimer = nil
+                self.festivalProp = nil
+                self.festivalUntil = nil
+                self.needsDisplay = true
+            }
+        }
+        RunLoop.main.add(t, forMode: .common)
+        festivalTimer = t
+    }
+
+    private func drawFestival(_ kind: String, w: CGFloat, h: CGFloat) {
+        let s = max(0.72, min(1.25, w / 210))
+        let bob = 2.2 * sin(phase * 2.2)
+        let ox = w - 58 * s
+        let oy = h - 66 * s + bob
+        let line = NSColor(calibratedRed: 0.18, green: 0.13, blue: 0.07, alpha: 1)
+        func paint(_ p: NSBezierPath, _ color: NSColor, width: CGFloat = 2.8) {
+            color.setFill(); p.fill()
+            line.setStroke(); p.lineWidth = width; p.stroke()
+        }
+        switch kind {
+        case "mooncake":
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-26*s, y: oy+18*s, width: 52*s, height: 13*s)),
+                  NSColor(calibratedRed: 0.95, green: 0.91, blue: 0.80, alpha: 1), width: 2.2)
+            let cake = NSBezierPath(ovalIn: NSRect(x: ox-20*s, y: oy-17*s, width: 40*s, height: 35*s))
+            paint(cake, NSColor(calibratedRed: 0.87, green: 0.66, blue: 0.30, alpha: 1))
+            line.setStroke()
+            let pattern = NSColor(calibratedRed: 0.62, green: 0.38, blue: 0.14, alpha: 1)
+            pattern.setFill()
+            for i in 0..<4 {
+                let a = CGFloat(i) * .pi / 2
+                NSBezierPath(ovalIn: NSRect(
+                    x: ox + cos(a) * 7*s - 4*s, y: oy + sin(a) * 7*s - 4*s,
+                    width: 8*s, height: 8*s)).fill()
+            }
+            NSBezierPath(ovalIn: NSRect(x: ox-3*s, y: oy-3*s, width: 6*s, height: 6*s)).fill()
+        case "zongzi":
+            let p = NSBezierPath()
+            p.move(to: NSPoint(x: ox, y: oy - 24*s))
+            p.line(to: NSPoint(x: ox - 22*s, y: oy + 20*s))
+            p.line(to: NSPoint(x: ox + 22*s, y: oy + 20*s))
+            p.close()
+            paint(p, NSColor(calibratedRed: 0.30, green: 0.55, blue: 0.24, alpha: 1))
+            line.setStroke()
+            let string = NSBezierPath()
+            string.move(to: NSPoint(x: ox - 12*s, y: oy - 4*s))
+            string.line(to: NSPoint(x: ox + 12*s, y: oy - 4*s))
+            string.stroke()
+        case "lantern":
+            line.setStroke()
+            let cord = NSBezierPath()
+            cord.move(to: NSPoint(x: ox, y: oy - 30*s))
+            cord.line(to: NSPoint(x: ox, y: oy - 18*s))
+            cord.stroke()
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-18*s, y: oy-20*s, width: 36*s, height: 40*s)),
+                  NSColor(calibratedRed: 0.80, green: 0.22, blue: 0.18, alpha: 1))
+            NSColor(calibratedRed: 0.95, green: 0.78, blue: 0.30, alpha: 1).setFill()
+            NSBezierPath(rect: NSRect(x: ox-10*s, y: oy-21*s, width: 20*s, height: 5*s)).fill()
+            NSBezierPath(rect: NSRect(x: ox-10*s, y: oy+16*s, width: 20*s, height: 5*s)).fill()
+            line.setStroke()
+            let tassel = NSBezierPath()
+            tassel.move(to: NSPoint(x: ox, y: oy + 21*s))
+            tassel.line(to: NSPoint(x: ox, y: oy + 33*s))
+            tassel.stroke()
+        case "pumpkin":
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-21*s, y: oy-16*s, width: 42*s, height: 34*s)),
+                  NSColor(calibratedRed: 0.92, green: 0.48, blue: 0.15, alpha: 1))
+            line.setStroke()
+            for dx in [-8.0, 0.0, 8.0] {
+                let p = NSBezierPath()
+                p.move(to: NSPoint(x: ox + CGFloat(dx)*s, y: oy - 13*s))
+                p.curve(to: NSPoint(x: ox + CGFloat(dx)*s, y: oy + 14*s),
+                        controlPoint1: NSPoint(x: ox + CGFloat(dx)*s - 3*s, y: oy),
+                        controlPoint2: NSPoint(x: ox + CGFloat(dx)*s + 3*s, y: oy + 4*s))
+                p.stroke()
+            }
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-4*s, y: oy-24*s, width: 8*s, height: 10*s)),
+                  NSColor(calibratedRed: 0.35, green: 0.50, blue: 0.20, alpha: 1), width: 2.0)
+        case "gift":
+            paint(NSBezierPath(rect: NSRect(x: ox-20*s, y: oy-10*s, width: 40*s, height: 30*s)),
+                  NSColor(calibratedRed: 0.82, green: 0.22, blue: 0.20, alpha: 1))
+            NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.30, alpha: 1).setFill()
+            NSBezierPath(rect: NSRect(x: ox-4*s, y: oy-10*s, width: 8*s, height: 30*s)).fill()
+            NSBezierPath(rect: NSRect(x: ox-20*s, y: oy+1*s, width: 40*s, height: 7*s)).fill()
+            let bow = NSBezierPath()
+            bow.move(to: NSPoint(x: ox, y: oy-10*s))
+            bow.curve(to: NSPoint(x: ox-13*s, y: oy-21*s),
+                      controlPoint1: NSPoint(x: ox-4*s, y: oy-18*s),
+                      controlPoint2: NSPoint(x: ox-12*s, y: oy-19*s))
+            bow.curve(to: NSPoint(x: ox, y: oy-10*s),
+                      controlPoint1: NSPoint(x: ox-8*s, y: oy-10*s),
+                      controlPoint2: NSPoint(x: ox-5*s, y: oy-8*s))
+            paint(bow, NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.30, alpha: 1), width: 2.0)
+        case "envelope":
+            paint(NSBezierPath(roundedRect: NSRect(x: ox-22*s, y: oy-15*s, width: 44*s, height: 31*s),
+                              xRadius: 4*s, yRadius: 4*s),
+                  NSColor(calibratedRed: 0.82, green: 0.22, blue: 0.20, alpha: 1))
+            line.setStroke()
+            let flap = NSBezierPath()
+            flap.move(to: NSPoint(x: ox-22*s, y: oy-15*s))
+            flap.line(to: NSPoint(x: ox, y: oy+3*s))
+            flap.line(to: NSPoint(x: ox+22*s, y: oy-15*s))
+            flap.stroke()
+            NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.30, alpha: 1).setFill()
+            NSBezierPath(ovalIn: NSRect(x: ox-7*s, y: oy-6*s, width: 14*s, height: 14*s)).fill()
+        case "leaves":
+            line.setStroke()
+            for i in 0..<3 {
+                let p = NSBezierPath(ovalIn: NSRect(x: ox-24*s + CGFloat(i)*15*s,
+                                                    y: oy-12*s + CGFloat(i)*9*s,
+                                                    width: 15*s, height: 8*s))
+                paint(p, NSColor(calibratedRed: 0.82, green: 0.55, blue: 0.18, alpha: 1), width: 1.6)
+                let vein = NSBezierPath()
+                vein.move(to: NSPoint(x: ox-20*s + CGFloat(i)*15*s, y: oy-8*s + CGFloat(i)*9*s))
+                vein.line(to: NSPoint(x: ox-12*s + CGFloat(i)*15*s, y: oy-8*s + CGFloat(i)*9*s))
+                vein.stroke()
+            }
+        case "snowman":
+            line.setStroke()
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-19*s, y: oy-2*s, width: 38*s, height: 23*s)),
+                  NSColor(calibratedRed: 0.97, green: 0.97, blue: 0.94, alpha: 1), width: 2.4)
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-14*s, y: oy-18*s, width: 28*s, height: 19*s)),
+                  NSColor(calibratedRed: 0.98, green: 0.98, blue: 0.95, alpha: 1), width: 2.4)
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-10*s, y: oy-30*s, width: 20*s, height: 16*s)),
+                  NSColor(calibratedRed: 0.99, green: 0.99, blue: 0.97, alpha: 1), width: 2.2)
+            NSColor(calibratedRed: 0.18, green: 0.13, blue: 0.07, alpha: 1).setFill()
+            NSBezierPath(ovalIn: NSRect(x: ox-4*s, y: oy-25*s, width: 2.6*s, height: 2.6*s)).fill()
+            NSBezierPath(ovalIn: NSRect(x: ox+2*s, y: oy-25*s, width: 2.6*s, height: 2.6*s)).fill()
+            let nose = NSBezierPath()
+            nose.move(to: NSPoint(x: ox, y: oy-22*s))
+            nose.line(to: NSPoint(x: ox+9*s, y: oy-20*s))
+            nose.line(to: NSPoint(x: ox, y: oy-18*s))
+            nose.close()
+            paint(nose, NSColor(calibratedRed: 0.95, green: 0.52, blue: 0.12, alpha: 1), width: 1.2)
+            NSColor(calibratedRed: 0.75, green: 0.20, blue: 0.18, alpha: 1).setFill()
+            NSBezierPath(rect: NSRect(x: ox-12*s, y: oy-35*s, width: 24*s, height: 5*s)).fill()
+            NSBezierPath(rect: NSRect(x: ox-7*s, y: oy-45*s, width: 14*s, height: 11*s)).fill()
+        case "fireworks":
+            line.setStroke()
+            let colors = [NSColor(calibratedRed: 0.95, green: 0.70, blue: 0.18, alpha: 1),
+                          NSColor(calibratedRed: 0.88, green: 0.30, blue: 0.38, alpha: 1)]
+            for k in 0..<2 {
+                let cx = ox + CGFloat(k == 0 ? -12 : 14) * s
+                let cy = oy + CGFloat(k == 0 ? 4 : -8) * s
+                for i in 0..<8 {
+                    let a = CGFloat(i) * .pi / 4
+                    let path = NSBezierPath()
+                    path.move(to: NSPoint(x: cx, y: cy))
+                    path.line(to: NSPoint(x: cx + cos(a)*17*s, y: cy + sin(a)*17*s))
+                    colors[k].setStroke()
+                    path.lineWidth = 2.0
+                    path.stroke()
+                }
+                NSColor(calibratedRed: 1.0, green: 0.92, blue: 0.62, alpha: 1).setFill()
+                NSBezierPath(ovalIn: NSRect(x: cx-3*s, y: cy-3*s, width: 6*s, height: 6*s)).fill()
+            }
+        case "porridge":
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-22*s, y: oy+2*s, width: 44*s, height: 13*s)),
+                  NSColor(calibratedRed: 0.95, green: 0.91, blue: 0.80, alpha: 1), width: 2.2)
+            let bowl = NSBezierPath()
+            bowl.move(to: NSPoint(x: ox-22*s, y: oy+2*s))
+            bowl.curve(to: NSPoint(x: ox+22*s, y: oy+2*s),
+                       controlPoint1: NSPoint(x: ox-20*s, y: oy+24*s),
+                       controlPoint2: NSPoint(x: ox+20*s, y: oy+24*s))
+            paint(bowl, NSColor(calibratedRed: 0.86, green: 0.38, blue: 0.28, alpha: 1), width: 2.4)
+            line.setStroke()
+            for i in 0..<3 {
+                let steam = NSBezierPath()
+                let sx = ox + CGFloat(i-1) * 9*s
+                steam.move(to: NSPoint(x: sx, y: oy-8*s))
+                steam.curve(to: NSPoint(x: sx+3*s, y: oy-20*s),
+                            controlPoint1: NSPoint(x: sx-5*s, y: oy-13*s),
+                            controlPoint2: NSPoint(x: sx+8*s, y: oy-16*s))
+                steam.stroke()
+            }
+        case "ricecake":
+            paint(NSBezierPath(roundedRect: NSRect(x: ox-20*s, y: oy-14*s, width: 40*s, height: 28*s),
+                              xRadius: 6*s, yRadius: 6*s),
+                  NSColor(calibratedRed: 0.97, green: 0.94, blue: 0.85, alpha: 1), width: 2.4)
+            line.setStroke()
+            for i in 0..<3 {
+                let p = NSBezierPath()
+                let yy = oy - 6*s + CGFloat(i)*7*s
+                p.move(to: NSPoint(x: ox-13*s, y: yy))
+                p.line(to: NSPoint(x: ox+13*s, y: yy))
+                p.stroke()
+            }
+        case "qingtuan":
+            paint(NSBezierPath(ovalIn: NSRect(x: ox-18*s, y: oy-18*s, width: 36*s, height: 36*s)),
+                  NSColor(calibratedRed: 0.48, green: 0.64, blue: 0.30, alpha: 1), width: 2.4)
+            NSColor(calibratedRed: 0.82, green: 0.92, blue: 0.68, alpha: 0.9).setFill()
+            NSBezierPath(ovalIn: NSRect(x: ox-9*s, y: oy-11*s, width: 8*s, height: 5*s)).fill()
+        case "fu":
+            let diamond = NSBezierPath()
+            diamond.move(to: NSPoint(x: ox, y: oy-23*s))
+            diamond.line(to: NSPoint(x: ox+22*s, y: oy-2*s))
+            diamond.line(to: NSPoint(x: ox, y: oy+21*s))
+            diamond.line(to: NSPoint(x: ox-22*s, y: oy-2*s))
+            diamond.close()
+            paint(diamond, NSColor(calibratedRed: 0.82, green: 0.22, blue: 0.20, alpha: 1), width: 2.6)
+            NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.30, alpha: 1).setFill()
+            NSBezierPath(rect: NSRect(x: ox-6*s, y: oy-8*s, width: 12*s, height: 12*s)).fill()
+        default:
+            for i in 0..<8 {
+                let a = CGFloat(i) * .pi / 4
+                let petal = NSBezierPath(ovalIn: NSRect(
+                    x: ox + cos(a) * 12*s - 7*s, y: oy + sin(a) * 12*s - 7*s,
+                    width: 14*s, height: 14*s))
+                paint(petal, NSColor(calibratedRed: 0.92, green: 0.72, blue: 0.22, alpha: 1), width: 1.6)
+            }
+            line.setStroke()
+            let stem = NSBezierPath()
+            stem.move(to: NSPoint(x: ox, y: oy + 3*s))
+            stem.line(to: NSPoint(x: ox, y: oy + 30*s))
+            stem.stroke()
+        }
+    }
+
+    private func drawSpeechBadge(w: CGFloat, h: CGFloat) {        let sc = max(w / 210, 0.6)
         let bs = max(19, 25 * sc)
         let badge = NSRect(x: w * 0.66, y: h * 0.13, width: bs, height: bs)
         accent.withAlphaComponent(0.95).setFill()

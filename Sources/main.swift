@@ -28,7 +28,7 @@ if args.contains("--check") {
     }
     var result: [String: Any] = [
         "ok": true, "clips": m.clips.count, "frames": m.clips.values.reduce(0) { $0 + $1.frameCount },
-        "assets": Paths.assets.path,
+        "assetRoot": Paths.assets.path,
     ]
     var missing: [String] = []
     for (_, c) in m.clips {
@@ -36,7 +36,25 @@ if args.contains("--check") {
             missing.append(f)
         }
     }
+    var characters: [[String: Any]] = []
+    for option in CharacterOption.all() {
+        var charMissing: [String] = []
+        for (_, c) in option.manifest.clips {
+            for f in c.frames {
+                let p = option.root.appendingPathComponent(f).path
+                if !FileManager.default.fileExists(atPath: p) { charMissing.append(f) }
+            }
+        }
+        characters.append([
+            "id": option.id, "name": option.name, "clips": option.manifest.clips.count,
+            "frames": option.manifest.clips.values.reduce(0) { $0 + $1.frameCount },
+            "missing": charMissing, "assets": option.root.path,
+        ])
+        missing.append(contentsOf: charMissing)
+    }
     result["missing"] = missing
+    result["characters"] = characters
+    result["ok"] = missing.isEmpty
     let data = try! JSONSerialization.data(withJSONObject: result, options: [.sortedKeys])
     print(String(data: data, encoding: .utf8) ?? "{}")
     exit(missing.isEmpty ? 0 : 1)

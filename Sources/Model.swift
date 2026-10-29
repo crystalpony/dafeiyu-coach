@@ -4,7 +4,7 @@ import Foundation
 // MARK: - 版本与路径
 
 let kAppName = "桌面大肥鱼 Coach"
-let kVersion = "1.2.0"
+let kVersion = "1.4.0"
 let kProtocol = 1
 
 struct Paths {
@@ -36,6 +36,35 @@ struct Paths {
             return project
         }
         return home.appendingPathComponent("clips", isDirectory: true)
+    }
+
+    /// 多形象素材根目录：默认形象仍用 clips；其它形象放在同级 characters/<id>。
+    static var charactersRoot: URL {
+        if let p = ProcessInfo.processInfo.environment["DAFEIYU_CHARACTERS"], !p.isEmpty {
+            return URL(fileURLWithPath: p, isDirectory: true)
+        }
+        return assets.deletingLastPathComponent().appendingPathComponent("characters", isDirectory: true)
+    }
+
+    static func characterAssets(_ id: String) -> URL? {
+        if id == "dafeiyu" { return assets }
+        let candidates = [
+            charactersRoot.appendingPathComponent(id, isDirectory: true),
+            assets.deletingLastPathComponent().appendingPathComponent("clips-\(id)", isDirectory: true),
+            home.appendingPathComponent("characters/\(id)", isDirectory: true),
+        ]
+        return candidates.first {
+            FileManager.default.fileExists(atPath: $0.appendingPathComponent("manifest.json").path)
+        }
+    }
+
+    static var sounds: URL {
+        if let p = ProcessInfo.processInfo.environment["DAFEIYU_SOUNDS"], !p.isEmpty {
+            return URL(fileURLWithPath: p, isDirectory: true)
+        }
+        let beside = assets.deletingLastPathComponent().appendingPathComponent("sounds", isDirectory: true)
+        if FileManager.default.fileExists(atPath: beside.path) { return beside }
+        return home.appendingPathComponent("sounds", isDirectory: true)
     }
     static func ensureHome() {
         try? FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
@@ -115,10 +144,18 @@ struct CoachSettings: Codable {
     var petOn: Bool = true
     var lastAgent: String = ""
     var sing: Bool? = true
+    // 小黑唱歌花样：auto / sway / mic / hat / tail；auto 会偶发切换。
+    var singStyle: String? = "auto"
+    // 小黑待机随机“喵喵叫”开关；手动菜单仍可触发。
+    var meowEnabled: Bool? = true
+    // 喵叫音效开关；默认开，静音用户可单独关。
+    var meowSound: Bool? = true
     var riceCount: Int? = 0
     var reducedMotion: Bool? = false
     // 用户主动关闭任务指导后，agent 不能再建任务或画指针；默认开启，旧配置缺省也按开启处理。
     var guideEnabled: Bool? = true
+    // 当前形象：dafeiyu / xiaohei；旧配置缺省时仍是大肥鱼。
+    var character: String? = nil
 }
 
 func loadSettings() -> CoachSettings {
@@ -194,10 +231,43 @@ struct ClipManifest: Codable {
     var clips: [String: ClipInfo]
 
     static func load() -> ClipManifest? {
-        let url = Paths.assets.appendingPathComponent("manifest.json")
+        load(from: Paths.assets)
+    }
+
+    static func load(from root: URL) -> ClipManifest? {
+        let url = root.appendingPathComponent("manifest.json")
         guard let data = try? Data(contentsOf: url),
               let m = try? JSONDecoder().decode(ClipManifest.self, from: data) else { return nil }
         return m
+    }
+}
+
+/// 可选形象的小目录；只读 manifest，不加载帧。
+struct CharacterOption {
+    var id: String
+    var name: String
+    var root: URL
+    var manifest: ClipManifest
+
+    static func all() -> [CharacterOption] {
+        var out: [CharacterOption] = []
+        for id in ["dafeiyu", "xiaohei"] {
+            guard let root = Paths.characterAssets(id),
+                  let m = ClipManifest.load(from: root) else { continue }
+            out.append(CharacterOption(id: id, name: m.displayName, root: root, manifest: m))
+        }
+        // 允许用户自行放入 characters/<id>，菜单里自动出现。
+        let fm = FileManager.default
+        if let dirs = try? fm.contentsOfDirectory(at: Paths.charactersRoot,
+                                                 includingPropertiesForKeys: nil,
+                                                 options: [.skipsHiddenFiles]) {
+            for dir in dirs where !["dafeiyu", "xiaohei"].contains(dir.lastPathComponent) {
+                guard let m = ClipManifest.load(from: dir) else { continue }
+                out.append(CharacterOption(id: dir.lastPathComponent, name: m.displayName,
+                                           root: dir, manifest: m))
+            }
+        }
+        return out
     }
 }
 
@@ -288,6 +358,20 @@ func runSelfTest(manifest: ClipManifest?) -> Int32 {
         }
     } else {
         failures.append("manifest missing at \(Paths.assets.path)")
+    }
+    // 可选形象：已安装就必须完整，缺失则不阻塞基础安装。
+    if let root = Paths.characterAssets("xiaohei"), let xm = ClipManifest.load(from: root) {
+        expect(xm.clips.count >= 25, "xiaohei has >= 25 clips")
+        for required in ["wash", "roll", "pounce", "fluff", "sleep", "meow", "heixiu",
+                         "sing", "sing_mic", "sing_hat", "sing_tail"] {
+            expect(xm.clips[required] != nil, "xiaohei has \(required)")
+        }
+        for (name, clip) in xm.clips {
+            expect(clip.frameCount == clip.frames.count, "xiaohei frame count \(name)")
+            expect(!clip.frames.isEmpty, "xiaohei frames \(name)")
+            expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(clip.frames[0]).path),
+                   "xiaohei frame exists \(name)")
+        }
     }
 
     if failures.isEmpty {

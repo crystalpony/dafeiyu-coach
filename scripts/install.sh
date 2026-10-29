@@ -50,6 +50,32 @@ else
   rm -rf "$DATA/clips"; cp -R "$ROOT/Runtime/clips" "$DATA/clips"
 fi
 
+if [[ -d "$ROOT/Runtime/characters" ]]; then
+  say "安装可选形象（小黑）"
+  mkdir -p "$DATA/characters"
+  for d in "$ROOT"/Runtime/characters/*/; do
+    [[ -f "$d/manifest.json" ]] || continue
+    name="$(basename "$d")"
+    mkdir -p "$DATA/characters/$name"
+    if command -v rsync >/dev/null 2>&1; then
+      rsync -a --delete "$d" "$DATA/characters/$name/"
+    else
+      rm -rf "$DATA/characters/$name"; cp -R "$d" "$DATA/characters/$name"
+    fi
+  done
+  python3 "$ROOT/scripts/prune_characters.py" "$DATA/characters" >/dev/null 2>&1 || true
+fi
+
+if [[ -d "$ROOT/Runtime/sounds" ]]; then
+  say "安装喵叫音效"
+  mkdir -p "$DATA/sounds"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "$ROOT/Runtime/sounds/" "$DATA/sounds/"
+  else
+    rm -rf "$DATA/sounds"; cp -R "$ROOT/Runtime/sounds" "$DATA/sounds"
+  fi
+fi
+
 if [[ -d "$ROOT/Runtime/music" ]]; then
   say "安装音乐检测适配器"
   mkdir -p "$DATA/music"
@@ -117,7 +143,7 @@ fi
 
 DAFEIYU_BIN="$BIN/dafeiyu" DAFEIYU_HOME="$DATA" HOME="$HOME" python3 - "$DATA" "$BIN" "${SKILLS[@]}" <<'PY'
 import json, os, sys, time
-data = {"version": "1.2.0", "installedAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
+data = {"version": "1.4.0", "installedAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "bin": os.environ["DAFEIYU_BIN"], "data": sys.argv[1],
         "skills": sys.argv[3:], "mcp": "see qoder/claude/codex configs"}
 Path = __import__("pathlib").Path

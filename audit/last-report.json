@@ -1,23 +1,27 @@
 {
   "ok": true,
-  "passed": 154,
-  "total": 154,
+  "passed": 186,
+  "total": 186,
   "groups": {
     "static": [
-      11,
-      11
+      20,
+      20
     ],
     "size": [
-      5,
-      5
+      7,
+      7
     ],
     "install": [
-      21,
-      21
+      22,
+      22
     ],
     "e2e": [
       45,
       45
+    ],
+    "character": [
+      9,
+      9
     ],
     "music": [
       9,
@@ -52,8 +56,8 @@
       16
     ],
     "visual": [
-      14,
-      14
+      25,
+      25
     ],
     "cleanup": [
       3,
@@ -64,13 +68,13 @@
     {
       "name": "swiftc -warnings-as-errors 编译",
       "ok": true,
-      "detail": "11 个源文件",
+      "detail": "15 个源文件",
       "group": "static"
     },
     {
       "name": "构建产物存在",
       "ok": true,
-      "detail": "1190 KB",
+      "detail": "1418 KB",
       "group": "static"
     },
     {
@@ -88,7 +92,49 @@
     {
       "name": "桌面窗口版依赖/素材",
       "ok": true,
-      "detail": "yu-daemon。\n{\"ok\": true, \"platform\": \"darwin\", \"assets\": \"/Users/xiajiaju/.dafeiyu/clips\", \"tk\": 8.6, \"pillow\": \"10.4.0\"}",
+      "detail": "大肥鱼完整的一生/Runtime/characters/xiaohei\", \"character\": \"xiaohei\", \"clips\": 25, \"sound\": true, \"tk\": 8.6, \"pillow\": \"10.4.0\"}",
+      "group": "static"
+    },
+    {
+      "name": "桌面窗口版可加载小黑素材",
+      "ok": true,
+      "detail": "xiaohei / 25 组 / /Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/Runtime/characters/xiaohei",
+      "group": "static"
+    },
+    {
+      "name": "小黑前肢/骨骼与新增动作 QA",
+      "ok": true,
+      "detail": "25 段 / 抽查 122 帧 / 最小上边距 6px",
+      "group": "static"
+    },
+    {
+      "name": "小黑1992帧解码/边界/哈希",
+      "ok": true,
+      "detail": "decoded=1992 errors=[]",
+      "group": "static"
+    },
+    {
+      "name": "小黑75帧源码重渲染一致",
+      "ok": true,
+      "detail": "rerendered=75",
+      "group": "static"
+    },
+    {
+      "name": "小黑像素几何与双平台播放器回归",
+      "ok": true,
+      "detail": "{'test_xiaohei_geometry.py': True, 'test_xiaohei_player.py': True}",
+      "group": "static"
+    },
+    {
+      "name": "冲突目录同名帧清理回归",
+      "ok": true,
+      "detail": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.009s\n\nOK",
+      "group": "static"
+    },
+    {
+      "name": "帧发布异常恢复上一套产物",
+      "ok": true,
+      "detail": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.016s\n\nOK",
       "group": "static"
     },
     {
@@ -106,7 +152,7 @@
     {
       "name": "单文件行数 < 1100",
       "ok": true,
-      "detail": "Controller.swift 1073 行",
+      "detail": "Controller.swift 1098 行",
       "group": "static"
     },
     {
@@ -122,6 +168,18 @@
       "group": "static"
     },
     {
+      "name": "小黑素材完整（25 组 / 24fps / 300×250）",
+      "ok": true,
+      "detail": "25 组 / 1992 帧 / 多余 0 / 缺失 0 / 喵叫音效 73 KB",
+      "group": "static"
+    },
+    {
+      "name": "小黑为原创同人绘制（无官方素材）",
+      "ok": true,
+      "detail": "User-provided fan art; character © MTJJ / 北京寒木春华. See NOTICE.md.",
+      "group": "static"
+    },
+    {
       "name": "米饭碗朝上可见（白瓷碗/米饭，不是 token）",
       "ok": true,
       "detail": "碗体白像素 27% / 源动作 2%",
@@ -130,13 +188,19 @@
     {
       "name": "二进制 < 2 MB",
       "ok": true,
-      "detail": "1190 KB",
+      "detail": "1418 KB",
       "group": "size"
     },
     {
       "name": "动画素材 < 8 MB",
       "ok": true,
       "detail": "7.48 MB / 890 帧",
+      "group": "size"
+    },
+    {
+      "name": "小黑素材 < 32 MB",
+      "ok": true,
+      "detail": "25.69 MB / 1992 帧",
       "group": "size"
     },
     {
@@ -148,13 +212,19 @@
     {
       "name": "运行体总计 < 10 MB",
       "ok": true,
-      "detail": "9.30 MB",
+      "detail": "9.59 MB",
+      "group": "size"
+    },
+    {
+      "name": "双形象总计 < 40 MB",
+      "ok": true,
+      "detail": "35.29 MB",
       "group": "size"
     },
     {
       "name": "源码 < 200 KB",
       "ok": true,
-      "detail": "142 KB",
+      "detail": "188 KB",
       "group": "size"
     },
     {
@@ -166,7 +236,7 @@
     {
       "name": "CLI 已安装",
       "ok": true,
-      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-x_dy_vyn/.local/bin/dafeiyu",
+      "detail": "/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-p6ycyehd/.local/bin/dafeiyu",
       "group": "install"
     },
     {
@@ -183,6 +253,12 @@
     },
     {
       "name": "动画素材已安装",
+      "ok": true,
+      "detail": "",
+      "group": "install"
+    },
+    {
+      "name": "小黑形象与喵叫已安装",
       "ok": true,
       "detail": "",
       "group": "install"
@@ -214,25 +290,25 @@
     {
       "name": "Qoder skill 有效",
       "ok": true,
-      "detail": "5522 字符",
+      "detail": "6059 字符",
       "group": "install"
     },
     {
       "name": "Claude Code skill 有效",
       "ok": true,
-      "detail": "5522 字符",
+      "detail": "6059 字符",
       "group": "install"
     },
     {
       "name": "Codex skill 有效",
       "ok": true,
-      "detail": "5522 字符",
+      "detail": "6059 字符",
       "group": "install"
     },
     {
       "name": "dsh skill 有效",
       "ok": true,
-      "detail": "5522 字符",
+      "detail": "6059 字符",
       "group": "install"
     },
     {
@@ -286,7 +362,7 @@
     {
       "name": "启动临时守护进程",
       "ok": true,
-      "detail": "pid 48067",
+      "detail": "pid 57642",
       "group": "e2e"
     },
     {
@@ -538,13 +614,13 @@
     {
       "name": "崩溃后重启",
       "ok": true,
-      "detail": "旧 pid 48204",
+      "detail": "旧 pid 57768",
       "group": "e2e"
     },
     {
       "name": "未完成任务跨重启恢复",
       "ok": true,
-      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': 'F05D35D9-FD91-4953-9E0C-7F9F5235F3A3', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
+      "detail": "session={'agent': '', 'done': 0, 'finished': False, 'hint': '', 'id': '471F8B77-20E3-4590-903B-F4F2A276A3FE', 'index': 0, 'label': '', 'text': '第一', 'title': '恢复测试', 'total': 2, 'x': None, 'y': None}",
       "group": "e2e"
     },
     {
@@ -554,9 +630,63 @@
       "group": "e2e"
     },
     {
+      "name": "状态列出两个形象",
+      "ok": true,
+      "detail": "current=dafeiyu options=['dafeiyu', 'xiaohei']",
+      "group": "character"
+    },
+    {
+      "name": "切换到小黑并持久化",
+      "ok": true,
+      "detail": "clip=idle assets=/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn/T/dafeiyu-audit-p6ycyehd/.dafeiyu/characters/xiaohei",
+      "group": "character"
+    },
+    {
+      "name": "小黑 25 段全部可播放",
+      "ok": true,
+      "detail": "25 组",
+      "group": "character"
+    },
+    {
+      "name": "小黑互动：洗脸动作",
+      "ok": true,
+      "detail": "clip=wash",
+      "group": "character"
+    },
+    {
+      "name": "小黑互动：睡觉循环",
+      "ok": true,
+      "detail": "clip=sleep sleeping=True",
+      "group": "character"
+    },
+    {
+      "name": "小黑喵喵叫开关 / 连叫 / 音效",
+      "ok": true,
+      "detail": "meowEnabled=False meow2=meow sound=True",
+      "group": "character"
+    },
+    {
+      "name": "唱歌花样：尾巴麦克风",
+      "ok": true,
+      "detail": "style=mic variant=sing",
+      "group": "character"
+    },
+    {
+      "name": "尾巴麦克风变体可播放",
+      "ok": true,
+      "detail": "clip=sing_mic variant=sing",
+      "group": "character"
+    },
+    {
+      "name": "切回大肥鱼",
+      "ok": true,
+      "detail": "clip=idle",
+      "group": "character"
+    },
+    {
       "name": "MediaRemote 用 timestamp 补播放位置",
       "ok": true,
-      "detail": "elapsed=8.000179052352905",
+      "detail": "elapsed=8.00041389465332",
       "group": "music"
     },
     {
@@ -628,19 +758,19 @@
     {
       "name": "会议模式到点自动解除",
       "ok": true,
-      "detail": "",
+      "detail": "quiet=False",
       "group": "interaction"
     },
     {
       "name": "交叉淡化进行中",
       "ok": true,
-      "detail": "blend=0.18273020832566544",
+      "detail": "blend=0.2710609362111427",
       "group": "transition"
     },
     {
       "name": "启动终端核心",
       "ok": true,
-      "detail": "{\"port\": 60210, \"token\": \"e4d7b0fb77c446096e59500346371af9\", \"pid\": 48308}",
+      "detail": "{\"port\": 64537, \"token\": \"13dc4cf8ca3a7ef7428d627c5a44370f\", \"pid\": 57885}",
       "group": "tui"
     },
     {
@@ -670,7 +800,7 @@
     {
       "name": "initialize 握手",
       "ok": true,
-      "detail": "{'name': 'dafeiyu-coach', 'version': '1.2.0'}",
+      "detail": "{'name': 'dafeiyu-coach', 'version': '1.4.0'}",
       "group": "mcp"
     },
     {
@@ -694,25 +824,25 @@
     {
       "name": "MCP guide 调用",
       "ok": true,
-      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "detail": "{\"agent\": \"mcp-audit\", \"assetCharacter\": \"whaletail-maid\", \"assets\": \"/var/folde",
       "group": "mcp"
     },
     {
       "name": "MCP next 调用",
       "ok": true,
-      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "detail": "{\"agent\": \"mcp-audit\", \"assetCharacter\": \"whaletail-maid\", \"assets\": \"/var/folde",
       "group": "mcp"
     },
     {
       "name": "MCP finish 调用",
       "ok": true,
-      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "detail": "{\"agent\": \"mcp-audit\", \"assetCharacter\": \"whaletail-maid\", \"assets\": \"/var/folde",
       "group": "mcp"
     },
     {
       "name": "MCP music 调用",
       "ok": true,
-      "detail": "{\"agent\": \"mcp-audit\", \"assets\": \"/var/folders/tm/77d7vkq963s8jr_6m6h3d_jh0000gn",
+      "detail": "{\"agent\": \"mcp-audit\", \"assetCharacter\": \"whaletail-maid\", \"assets\": \"/var/folde",
       "group": "mcp"
     },
     {
@@ -736,19 +866,19 @@
     {
       "name": "待机 CPU < 6%",
       "ok": true,
-      "detail": "3.6%",
+      "detail": "3.4%",
       "group": "perf"
     },
     {
       "name": "待机 RSS < 140 MB",
       "ok": true,
-      "detail": "71 MB",
+      "detail": "70 MB",
       "group": "perf"
     },
     {
       "name": "动画+指针 CPU < 14%",
       "ok": true,
-      "detail": "7.4%",
+      "detail": "5.8%",
       "group": "perf"
     },
     {
@@ -760,7 +890,7 @@
     {
       "name": "性能记录",
       "ok": true,
-      "detail": "idle 3.6% / 71MB · active 7.4% / 80MB",
+      "detail": "idle 3.4% / 70MB · active 5.8% / 80MB",
       "group": "perf"
     },
     {
@@ -790,7 +920,7 @@
     {
       "name": "README 完整",
       "ok": true,
-      "detail": "12700 字符",
+      "detail": "16453 字符",
       "group": "docs"
     },
     {
@@ -914,6 +1044,36 @@
       "group": "visual"
     },
     {
+      "name": "证据 06：小黑形象 + 气泡",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/06-xiaohei.png",
+      "group": "visual"
+    },
+    {
+      "name": "证据 10：小黑前肢骨骼 + 新增动作总览",
+      "ok": true,
+      "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/10-xiaohei-rig.png / /Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/11-xiaohei-actions.png",
+      "group": "visual"
+    },
+    {
+      "name": "新实机证据：sleep无叠帧",
+      "ok": true,
+      "detail": "18-xiaohei-sleep-live.png clip=sleep blend=1",
+      "group": "visual"
+    },
+    {
+      "name": "新实机证据：sing_mic无叠帧",
+      "ok": true,
+      "detail": "19-xiaohei-mic-live.png clip=sing_mic blend=1",
+      "group": "visual"
+    },
+    {
+      "name": "新实机证据：sing_hat无叠帧",
+      "ok": true,
+      "detail": "20-xiaohei-hat-live.png clip=sing_hat blend=1",
+      "group": "visual"
+    },
+    {
       "name": "证据 06：终端版渲染",
       "ok": true,
       "detail": "/Users/xiajiaju/Library/Mobile Documents/com~apple~CloudDocs/Agent workplace/给大肥鱼完整的一生/audit/screenshots/tui-sample.txt",
@@ -940,31 +1100,67 @@
     {
       "name": "截图非空 01-guide.png",
       "ok": true,
-      "detail": "321 KB",
+      "detail": "322 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 02-success.png",
       "ok": true,
-      "detail": "326 KB",
+      "detail": "317 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 03-companion.png",
       "ok": true,
-      "detail": "306 KB",
+      "detail": "300 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 04-music.png",
       "ok": true,
-      "detail": "308 KB",
+      "detail": "295 KB",
       "group": "visual"
     },
     {
       "name": "截图非空 05-rice.png",
       "ok": true,
+      "detail": "298 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 06-xiaohei.png",
+      "ok": true,
       "detail": "311 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 10-xiaohei-rig.png",
+      "ok": true,
+      "detail": "646 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 11-xiaohei-actions.png",
+      "ok": true,
+      "detail": "1046 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 13-xiaohei-menu.png",
+      "ok": true,
+      "detail": "87 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 14-xiaohei-festival.png",
+      "ok": true,
+      "detail": "129 KB",
+      "group": "visual"
+    },
+    {
+      "name": "截图非空 15-xiaohei-poses.png",
+      "ok": true,
+      "detail": "189 KB",
       "group": "visual"
     },
     {
@@ -986,5 +1182,5 @@
       "group": "cleanup"
     }
   ],
-  "at": "2026-10-28T11:46:30"
+  "at": "2026-10-29T10:54:47"
 }
